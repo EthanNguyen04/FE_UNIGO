@@ -23,3 +23,6 @@
 
 - [Tài liệu chính thức của Expo](https://docs.expo.dev/)
 - [Hướng dẫn từng bước](https://docs.expo.dev/tutorial/introduction/)
+
+
+----- Lan ok
