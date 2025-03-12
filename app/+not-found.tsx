@@ -1,3 +1,4 @@
+// file này là xử lý lỗi điều hướng
 import { Link, Stack } from 'expo-router';
 import { StyleSheet } from 'react-native';
 
