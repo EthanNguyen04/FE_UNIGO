@@ -1,5 +1,6 @@
 import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Image } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { Link } from 'expo-router';
 import { Ionicons } from "@expo/vector-icons";
 
 export default function NotiScreen() {
@@ -38,6 +39,11 @@ export default function NotiScreen() {
           </View>
         </View>
       ))}
+
+      {/* Link đến Flash Sale */}
+      <Link href="/(product)/flash_sale/flash_sale_screen">
+        <Text>Chuyển đến Flash Sale</Text>
+      </Link>
     </View>
   );
 }
