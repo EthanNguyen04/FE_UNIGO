@@ -1,10 +1,13 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
+import { Link, Stack } from 'expo-router';
 
 export default function NotiScreen() {
   return (
     <View style={styles.container}>
-      <Text style={styles.text}>Thông báo</Text>
+      <Link href="/(product)/flash_sale/flash_sale_screen">
+      <Text>Chuyển đến Flash Sale</Text>
+    </Link>
     </View>
   );
 }
@@ -20,5 +23,5 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: "bold",
     color: "#333",
-  },
+  }
 });
