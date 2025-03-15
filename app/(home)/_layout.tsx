@@ -26,7 +26,7 @@ export default function TabLayout() {
         tabBarShowLabel: false, // Ẩn tiêu đề tab
         tabBarStyle: styles.tabBarStyle,
       }}>
-      
+
       <Tabs.Screen
         name="index"
         options={{
@@ -59,7 +59,9 @@ export default function TabLayout() {
           ),
         }}
       />
+
     </Tabs>
+
   );
 }
 
@@ -92,7 +94,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 10,
   },
-  
+
   dot: {
     width: 6,
     height: 6,
