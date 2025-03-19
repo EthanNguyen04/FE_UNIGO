@@ -1,6 +1,8 @@
 import React, { useState } from "react";
-import { View, Text, StyleSheet, TextInput, FlatList, Image, TouchableOpacity } from "react-native";
+import { View, Text, StyleSheet, TextInput, FlatList, TouchableOpacity, Dimensions } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { Image } from "expo-image";
+
 
 const products = [
   { id: "1", name: "Áo Khoác Phao", oldPrice: "1.250.000 VND", newPrice: "1.000.000 VND", discount: "20%", image: "https://www.lavender.com.vn/wp-content/uploads/chup-anh-ao-dai-truyen-thong-cung-ban-be-o-ha-noi.jpg" },
@@ -14,6 +16,8 @@ const products = [
 ];
 
 export default function HomeScreen() {
+  const screenWidth = Dimensions.get("window").width; // Lấy chiều rộng màn hình
+
   const [selectedCategory, setSelectedCategory] = useState("Đề xuất");
   const categories = ["Đề xuất", "Quần bò", "Áo thun", "Quần jeans"];
 
@@ -29,14 +33,17 @@ export default function HomeScreen() {
       </View>
 
       {/* Banner */}
-      <View style={styles.banner}>
-        <Text style={styles.bannerText}>Giảm giá cực sâu{"\n"}mua lâu thì mất</Text>
-        <Text style={styles.bannerSale}>Sale OFF</Text>
-      </View>
+      <Image
+        source={require("../../assets/images/banner.png")}
+        style={styles.image_Banner} 
+      />
 
       {/* Danh sách sản phẩm giảm giá */}
       <View style={styles.saleSection}>
-        <Text style={styles.saleLabel}>SALE</Text>
+        <Image 
+          source={require("../../assets/images/sale_img.gif")}
+          style={styles.image_gif}
+        />
         <FlatList
           horizontal
           data={products}
@@ -105,17 +112,28 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#fff",
-    paddingHorizontal: 10,
-    paddingTop: 40,
+    paddingTop: 20,
+    paddingLeft:5,
+    paddingRight:5,
+  },
+  image_Banner: {
+    width: "100%", // Vừa với màn hình
+    alignSelf: "center", // Chỉ căn giữa theo chiều ngang
+    resizeMode: "contain", // Giữ nguyên tỷ lệ ảnh
+    margin: 20,
+    aspectRatio: 10 / 3, // Tự động tính chiều cao dựa trên tỷ lệ
+  },
+  image_gif: {
+    width: "25%", // Vừa màn hình
+    aspectRatio: 6 / 3, // Tự động tính chiều cao dựa trên tỷ lệ
+    resizeMode: "contain",
   },
   searchContainer: {
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#f0f0f0",
     borderRadius: 8,
-    paddingHorizontal: 10,
     paddingVertical: 5,
-    marginBottom: 10,
   },
   searchInput: {
     flex: 1,
