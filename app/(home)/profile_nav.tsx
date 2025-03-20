@@ -1,6 +1,8 @@
-import React from "react";
+import React, { useState } from "react";
 import { View, Text, StyleSheet, Image, TouchableOpacity, FlatList } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
+import LogoutDialog from "../../components/home/LogoutDialog";
 
 const settings = [
   { id: "1", title: "Tài Khoản & Bảo Mật" },
@@ -9,7 +11,22 @@ const settings = [
   { id: "4", title: "Đăng Xuất" },
 ];
 
+const icons = {
+  xac_nhan: require("../../assets/images/load_oder_img.png"),
+  cho_lay: require("../../assets/images/send_img.png"),
+  cho_giao: require("../../assets/images/sending_img.png"),
+  review: require("../../assets/images/evalute_img.png"),
+};
+
 export default function ProfileScreen() {
+  const [logoutVisible, setLogoutVisible] = useState(false);
+  const router = useRouter();
+
+  const handleLogout = () => {
+    setLogoutVisible(false);
+    router.replace("/login");
+  };
+
   return (
     <View style={styles.container}>
       {/* Header */}
@@ -34,7 +51,7 @@ export default function ProfileScreen() {
       </View>
 
       {/* Đơn Mua */}
-      <View style={styles.orderSection}>
+      <View style={styles.settingsCard}>
         <View style={styles.orderHeader}>
           <Text style={styles.sectionTitle}>ĐƠN MUA</Text>
           <TouchableOpacity>
@@ -43,38 +60,42 @@ export default function ProfileScreen() {
         </View>
         <View style={styles.orderIcons}>
           <TouchableOpacity style={styles.orderItem}>
-            <Ionicons name="cube-outline" size={24} color="#333" />
+            <Image source={icons.xac_nhan} style={styles.orderIcon} />
             <Text style={styles.orderLabel}>Chờ xác nhận</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.orderItem}>
-            <Ionicons name="car-outline" size={24} color="#333" />
+            <Image source={icons.cho_lay} style={styles.orderIcon} />
             <Text style={styles.orderLabel}>Chờ lấy hàng</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.orderItem}>
-            <Ionicons name="bicycle-outline" size={24} color="#333" />
+          <Image source={icons.cho_giao} style={styles.orderIcon} />
             <Text style={styles.orderLabel}>Chờ giao hàng</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.orderItem}>
-            <Ionicons name="star-outline" size={24} color="#333" />
+          <Image source={icons.review} style={styles.orderIcon} />
             <Text style={styles.orderLabel}>Đánh giá</Text>
           </TouchableOpacity>
         </View>
       </View>
 
       {/* Cài Đặt */}
-      <View style={styles.settingsSection}>
-        <Text style={styles.sectionTitle}>Cài Đặt</Text>
+      <View style={styles.settingsCard}>
         <FlatList
           data={settings}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
-            <TouchableOpacity style={styles.settingItem}>
+            <TouchableOpacity 
+              style={styles.settingItem} 
+              onPress={() => item.title === "Đăng Xuất" ? setLogoutVisible(true) : alert(`Chức năng đang phát triển: ${item.title}`)}
+            >
               <Text style={styles.settingText}>{item.title}</Text>
               <Ionicons name="chevron-forward" size={20} color="#888" />
             </TouchableOpacity>
           )}
         />
       </View>
+
+      <LogoutDialog visible={logoutVisible} onCancel={() => setLogoutVisible(false)} onConfirm={handleLogout} />
     </View>
   );
 }
@@ -156,7 +177,9 @@ const styles = StyleSheet.create({
   },
   orderIcons: {
     flexDirection: "row",
-    justifyContent: "space-between",
+    justifyContent: "space-evenly", // Chia đều khoảng cách giữa các icon
+    alignItems: "center", // Căn giữa theo chiều dọc
+    paddingVertical: 0, // Thêm khoảng cách dọc cho đẹp hơn
   },
   orderItem: {
     alignItems: "center",
@@ -183,4 +206,23 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#333",
   },
+  settingsCard: {
+    backgroundColor: "#F7F7F7",
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "#ddd",
+    padding: 10,
+    margin: 15,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3, // Hiệu ứng đổ bóng cho Android
+  },
+  orderIcon: {
+    width: 50,
+    height: 50,
+    resizeMode: "contain",
+  },
+  
 });
