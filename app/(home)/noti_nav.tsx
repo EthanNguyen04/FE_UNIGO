@@ -1,7 +1,6 @@
 import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
-import { Link } from 'expo-router';
-import { Ionicons } from "@expo/vector-icons";
+import { View, Text, StyleSheet, TouchableOpacity, Image, Button } from "react-native";
+import { router } from "expo-router";
 
 export default function NotiScreen() {
   const notifications = [
@@ -13,13 +12,21 @@ export default function NotiScreen() {
     },
   ];
 
+  const icons = {
+    loa: require("../../assets/images/loa_icon.png"),
+    cart: require("../../assets/images/cart_img.png"),
+  };
+  
+
   return (
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerText}>THÔNG BÁO</Text>
         <TouchableOpacity style={styles.cartIconContainer}>
-          <Ionicons name="cart-outline" size={24} color="#333" />
+          <View style={styles.iconBackground}>
+          <Image source={icons.cart} style={styles.ic_cart} />
+          </View>
           <View style={styles.badge}>
             <Text style={styles.badgeText}>1</Text>
           </View>
@@ -29,7 +36,7 @@ export default function NotiScreen() {
       {/* Danh sách thông báo */}
       {notifications.map((item) => (
         <View key={item.id} style={styles.notificationContainer}>
-          <Ionicons name="megaphone-outline" size={24} color="#FF8C00" style={styles.icon} />
+            <Image source={icons.loa} style={styles.ic} />
           <View style={styles.notificationContent}>
             <View style={styles.notificationHeader}>
               <Text style={styles.notificationTitle}>{item.title}</Text>
@@ -41,9 +48,8 @@ export default function NotiScreen() {
       ))}
 
       {/* Link đến Flash Sale */}
-      <Link href="/(product)/flash_sale/flash_sale_screen">
-        <Text>Chuyển đến Flash Sale</Text>
-      </Link>
+      <Button title="Chuyển đến Sale" onPress={() => router.push("/flash_sale_screen")} />
+      <Button title="Chuyển đến product" onPress={() => router.push("/product_screen")} />
     </View>
   );
 }
@@ -69,8 +75,18 @@ const styles = StyleSheet.create({
     color: "#FF8C00", // Màu cam
   },
   cartIconContainer: {
-    position: "relative",
+    alignItems: "center",
+    justifyContent: "center",
   },
+  iconBackground: {
+    width: 50, // Kích thước nền tròn
+    height: 50,
+    borderRadius: 50, // Làm tròn viền (bằng 1/2 width & height)
+    backgroundColor: "#EEEDED", // Màu nền (đổi theo UI của bạn)
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  
   badge: {
     position: "absolute",
     top: -5,
@@ -120,4 +136,15 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#333",
   },
+  ic: {
+    width: 30,
+    height: 30,
+    resizeMode: "contain",
+  },
+  ic_cart: {
+    width: 30,
+    height: 30,
+    resizeMode: "contain",
+  },
+  
 });

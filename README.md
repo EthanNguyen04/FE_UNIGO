@@ -23,3 +23,21 @@
 
 - [Tài liệu chính thức của Expo](https://docs.expo.dev/)
 - [Hướng dẫn từng bước](https://docs.expo.dev/tutorial/introduction/)
+
+
+my-expo-app/
+│── app/                     # Chứa các màn hình và điều hướng chính
+
+│── assets/                  # Chứa hình ảnh, icon, fonts, v.v.
+
+│── components/              # Chứa các thành phần UI dùng chung
+
+│── constants/               # Chứa các giá trị cố định
+│
+│── hooks/                   # Chứa các hook custom
+│   ├── useAuth.ts           # Hook xác thực
+│   ├── useCart.ts           # Hook quản lý giỏ hàng
+│   └── useFetch.ts          # Hook fetch API
+│
+│── services/                # Chứa API services
+│
