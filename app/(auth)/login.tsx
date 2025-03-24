@@ -46,7 +46,7 @@ export default function LoginScreen() {
     if (!emailValidation && !passwordValidation) {
       // Xử lý đăng nhập
       console.log("Đăng nhập thành công");
-      router.push("/");
+      router.push("/(home)");
     }
   };
 
@@ -139,12 +139,12 @@ export default function LoginScreen() {
   );
 }
 
-// 🌟 **CSS Styles**
+// 🌟 *CSS Styles*
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: "center",
-    padding: 20,
+    paddingHorizontal: 20,
     backgroundColor: "white",
   },
   title: {
@@ -160,11 +160,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "bold",
     marginBottom: 5,
-    marginTop: 20,
+    marginTop: 10,
+    color: '#818181'
   },
   input: {
     borderWidth: 0,
-    borderBottomWidth: 2,
+    borderBottomWidth: 1,
     paddingVertical: 10,
     fontSize: 16,
     backgroundColor: "transparent",
@@ -179,7 +180,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   eyeIcon: {
-    padding: 10,
+    position: 'absolute',
+    right: 0
   },
   errorText: {
     color: "#EB0D0D",
@@ -214,13 +216,13 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: "#EEEAEA",
-    padding: 15,
+    backgroundColor: "#EEEAEAA1",
+    padding: 10,
     alignItems: "center",
   },
   footerText: {
     color: "black",
-    fontSize: 16,
+    fontSize: 14,
   },
   registerText: {
     fontWeight: "bold",
