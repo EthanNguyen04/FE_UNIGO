@@ -132,12 +132,16 @@ const styles = StyleSheet.create({
     flexDirection: "row",
   },
   statText: {
-    fontSize: 14,
+    fontSize: 12,
     color: "#666",
     marginRight: 15,
+    fontWeight:"bold"
   },
   cartIconContainer: {
     position: "relative",
+    backgroundColor: "#f0f0f0",
+    borderRadius: 50,
+    padding: 8,
   },
   badge: {
     position: "absolute",
