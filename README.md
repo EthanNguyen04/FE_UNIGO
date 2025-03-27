@@ -25,7 +25,7 @@
 - [Hướng dẫn từng bước](https://docs.expo.dev/tutorial/introduction/)
 
 
-<<<<<<< HEAD
+
 my-expo-app/
 │── app/                     # Chứa các màn hình và điều hướng chính
 
@@ -42,6 +42,3 @@ my-expo-app/
 │
 │── services/                # Chứa API services
 │
-=======
------ Lan ok
->>>>>>> 1a271861d18bda6a663d84870f51cf8bc710d7ea

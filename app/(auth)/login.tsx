@@ -117,10 +117,10 @@ export default function LoginScreen() {
       ) : null}
 
       {/* Quên mật khẩu */}
-      <TouchableOpacity style={styles.forgotPasswordContainer} onPress={() => router.push("/forgot_password")}>
+      <TouchableOpacity style={styles.forgotPasswordContainer} onPress={() => router.push("/otp_verify")}>
         <CustomText style={styles.forgotPassword}>Quên mật khẩu?</CustomText>
       </TouchableOpacity>
-
+{/* hoặc đổi router sang forgot_password */}
       {/* Nút đăng nhập */}
       <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
         <CustomText style={styles.loginButtonText}>Đăng Nhập</CustomText>
@@ -149,8 +149,9 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 26, // Dịch lên trên bằng cách tăng font
-    fontWeight: "600",
+    fontWeight: "bold",
     marginBottom: 5, // Giảm khoảng cách với subtitle
+    
   },
   subtitle: {
     color: "gray",
