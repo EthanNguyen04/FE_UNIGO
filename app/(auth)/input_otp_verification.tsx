@@ -25,8 +25,9 @@ export default function OTPVerificationScreen() {
 
   const handleVerifyOTP = () => {
     const enteredOtp = otp.join("");
-    if (enteredOtp === "1234") {
-      Alert.alert("Xác thực thành công!", "Chuyển sang màn hình đổi mật khẩu.");
+    if (!enteredOtp) {
+      Alert.alert("Lỗi", "Chưa nhập OTP");
+    } else if (enteredOtp === "1234") {
       router.push("/forgot_password");
     } else {
       Alert.alert("Lỗi", "Mã OTP không đúng, vui lòng thử lại.");
@@ -103,7 +104,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 24,
-    fontWeight: "600",
+    fontWeight: "bold",
     marginBottom: 10,
   },
   subtitle: {

@@ -79,6 +79,7 @@ export default function RegisterScreen() {
   return (
     <View style={styles.container}>
       <CustomText style={styles.title}>Đăng ký</CustomText>
+      <CustomText>   </CustomText>
       {/* <CustomText style={styles.subtitle}>Đăng nhập để tiếp tục</CustomText> */}
 
 
@@ -205,7 +206,7 @@ export default function RegisterScreen() {
  
       {/* Nút đăng nhập */}
       <TouchableOpacity style={styles.loginButton} onPress={handleRegister}>
-        <CustomText style={styles.loginButtonText}>Đăng Kí</CustomText>
+        <CustomText style={styles.loginButtonText}>Đăng Ký</CustomText>
       </TouchableOpacity>
 
       {/* Nền cam chứa "Bạn chưa có tài khoản?" */}
@@ -231,7 +232,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 26, // Dịch lên trên bằng cách tăng font
-    fontWeight: "600",
+    fontWeight: "bold",
     marginBottom: 5, // Giảm khoảng cách với subtitle
   },
   subtitle: {

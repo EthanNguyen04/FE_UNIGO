@@ -24,33 +24,40 @@ export default function ForgotPasswordScreen() {
   }, [password, confirmPassword]);
 
   const handleResetPassword = () => {
-    if (password === confirmPassword) {
-      setSuccessMessage("Đổi mật khẩu thành công");
-      setModalVisible(true);
+    if (!password || !confirmPassword) {
+      setError("Vui lòng nhập đầy đủ mật khẩu");
+      return;
+    }
+  
+    if (password !== confirmPassword) {
+      setError("Mật khẩu không khớp. Vui lòng thử lại.");
+      return;
+    }
+  
+    setSuccessMessage("Đổi mật khẩu thành công");
+    setModalVisible(true);
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+    setTimeout(() => {
       Animated.timing(fadeAnim, {
-        toValue: 1,
+        toValue: 0,
         duration: 300,
         useNativeDriver: true,
-      }).start();
-      setTimeout(() => {
-        Animated.timing(fadeAnim, {
-          toValue: 0,
-          duration: 300,
-          useNativeDriver: true,
-        }).start(() => {
-          setModalVisible(false);
-          router.push("/login");
-        });
-      }, 2000);
-    } else {
-      setError("Mật khẩu không khớp. Vui lòng thử lại.");
-    }
+      }).start(() => {
+        setModalVisible(false);
+        router.push("/login");
+      });
+    }, 2000);
   };
+  
 
   return (
     <View style={styles.container}>
-      <CustomText style={styles.title}>Quên Mật Khẩu</CustomText>
-
+      <CustomText style={styles.title}>Thay đổi mật khẩu</CustomText>
+      <CustomText>   </CustomText>
       {/* Nhập mật khẩu mới */}
       <View style={styles.inputContainer}>
         <Ionicons name="lock-closed" size={20} color="gray" style={styles.icon} />
@@ -108,9 +115,8 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 24,
-    fontWeight: "600",
+    fontWeight: "bold",
     marginBottom: 20,
-    textAlign: "center",
   },
   inputContainer: {
     flexDirection: "row",
