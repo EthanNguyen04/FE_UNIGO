@@ -10,49 +10,57 @@ export default function ForgotPasswordScreen() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [error, setError] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+  const [confirmPasswordError, setConfirmPasswordError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [modalVisible, setModalVisible] = useState(false);
   const fadeAnim = useState(new Animated.Value(0))[0];
 
-  useEffect(() => {
-    if (confirmPassword && password !== confirmPassword) {
-      setError("* Mật khẩu nhập lại không trùng khớp");
-    } else {
-      setError("");
-    }
-  }, [password, confirmPassword]);
+  // Hàm kiểm tra mật khẩu hợp lệ
+  const validatePassword = (text: string) => {
+    if (!text) return "Mật khẩu không được để trống";
+    if (text.length < 6) return "Mật khẩu phải có ít nhất 6 ký tự";
+    return "";
+  };
+
+  const validateConfirmPassword = (text: string) => {
+    if (!text) return "Vui lòng nhập lại mật khẩu";
+    if (text !== password) return "Mật khẩu không khớp";
+    return "";
+  };
 
   const handleResetPassword = () => {
-    if (!password || !confirmPassword) {
-      setError("Vui lòng nhập đầy đủ mật khẩu");
+    const passwordValidation = validatePassword(password);
+    setPasswordError(passwordValidation);
+    
+    if (passwordValidation) {
+      setConfirmPasswordError("");
       return;
     }
-  
-    if (password !== confirmPassword) {
-      setError("Mật khẩu không khớp. Vui lòng thử lại.");
-      return;
-    }
-  
-    setSuccessMessage("Đổi mật khẩu thành công");
-    setModalVisible(true);
-    Animated.timing(fadeAnim, {
-      toValue: 1,
-      duration: 300,
-      useNativeDriver: true,
-    }).start();
-    setTimeout(() => {
+
+    const confirmPasswordValidation = validateConfirmPassword(confirmPassword);
+    setConfirmPasswordError(confirmPasswordValidation);
+
+    if (!passwordValidation && !confirmPasswordValidation) {
+      setSuccessMessage("Đổi mật khẩu thành công");
+      setModalVisible(true);
       Animated.timing(fadeAnim, {
-        toValue: 0,
+        toValue: 1,
         duration: 300,
         useNativeDriver: true,
-      }).start(() => {
-        setModalVisible(false);
-        router.push("/login");
-      });
-    }, 2000);
+      }).start();
+      setTimeout(() => {
+        Animated.timing(fadeAnim, {
+          toValue: 0,
+          duration: 300,
+          useNativeDriver: true,
+        }).start(() => {
+          setModalVisible(false);
+          router.push("/login");
+        });
+      }, 2000);
+    }
   };
-  
 
   return (
     <View style={styles.container}>
@@ -66,12 +74,16 @@ export default function ForgotPasswordScreen() {
           placeholder="Mật khẩu mới"
           secureTextEntry={!showPassword}
           value={password}
-          onChangeText={setPassword}
+          onChangeText={(text) => {
+            setPassword(text);
+            setPasswordError(validatePassword(text));
+          }}
         />
         <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
           <Ionicons name={showPassword ? "eye-off" : "eye"} size={20} color="gray" />
         </TouchableOpacity>
       </View>
+      {passwordError ? <CustomText style={styles.errorText}>{passwordError}</CustomText> : null}
 
       {/* Nhập lại mật khẩu mới */}
       <View style={styles.inputContainer}>
@@ -81,13 +93,16 @@ export default function ForgotPasswordScreen() {
           placeholder="Nhập lại mật khẩu"
           secureTextEntry={!showConfirmPassword}
           value={confirmPassword}
-          onChangeText={setConfirmPassword}
+          onChangeText={(text) => {
+            setConfirmPassword(text);
+            setConfirmPasswordError(validateConfirmPassword(text));
+          }}
         />
         <TouchableOpacity onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
           <Ionicons name={showConfirmPassword ? "eye-off" : "eye"} size={20} color="gray" />
         </TouchableOpacity>
       </View>
-      {error ? <CustomText style={styles.errorText}>{error}</CustomText> : null}
+      {confirmPasswordError ? <CustomText style={styles.errorText}>{confirmPasswordError}</CustomText> : null}
 
       {/* Nút Xác Nhận */}
       <TouchableOpacity style={styles.verifyButton} onPress={handleResetPassword}>
@@ -146,7 +161,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   errorText: {
-    color: "#FF8000",
+    color: "#EB0D0D",
     marginTop: -10,
     marginBottom: 15,
   },

@@ -117,7 +117,7 @@ export default function LoginScreen() {
       ) : null}
 
       {/* Quên mật khẩu */}
-      <TouchableOpacity style={styles.forgotPasswordContainer} onPress={() => router.push("/otp_verify")}>
+      <TouchableOpacity style={styles.forgotPasswordContainer} onPress={() => router.push("/email_verify")}>
         <CustomText style={styles.forgotPassword}>Quên mật khẩu?</CustomText>
       </TouchableOpacity>
 {/* hoặc đổi router sang forgot_password */}
