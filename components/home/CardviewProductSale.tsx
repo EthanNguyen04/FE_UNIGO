@@ -6,19 +6,21 @@ import {
   Image,
   ImageSourcePropType,
   ImageBackground,
+  Dimensions,
 } from "react-native";
 
-// Định nghĩa kiểu cho product
+// Lấy chiều rộng màn hình
+const screenWidth = Dimensions.get('window').width;
+
 interface Product {
   id: string;
   name: string;
-  oldPrice: string;
-  newPrice: string;
+  oldPrice: number;
+  newPrice: number;
   discount: string;
   image: ImageSourcePropType;
 }
 
-// Định nghĩa kiểu cho props
 interface CardviewProductSaleProps {
   product: Product;
 }
@@ -36,57 +38,58 @@ const CardviewProductSale: React.FC<CardviewProductSaleProps> = ({ product }) =>
           <Text style={styles.discountText}>-{product.discount}</Text>
         </ImageBackground>
       </View>
-      <Text style={[styles.cardName, { marginLeft: 3 }]}>{product.name}</Text>
-      <View
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-        }}
+
+      <Text
+        style={[styles.cardName, { padding: 3, width: screenWidth * 0.3 }]}
+        numberOfLines={2}
+        ellipsizeMode="tail"
       >
-        <Text style={{ fontSize: 10, fontWeight: "bold", marginLeft: 3, marginRight: 8 }}>
-          Giá gốc
-        </Text>
-        <Text style={styles.oldPrice}>{product.oldPrice}</Text>
-      </View>
-      <Text style={[styles.cardPrice, { marginLeft: 2, marginTop: 1 }]}>
-        {product.newPrice}
+        {product.name}
       </Text>
+
+      {/* View chứa giá cũ và giá mới, căn chúng xuống dưới */}
+      <View style={styles.priceContainer}>
+        <View style={styles.oldPriceContainer}>
+          <Text style={styles.oldPrice}>
+            {/* Định dạng và thêm "VND" */}
+            {product.oldPrice.toLocaleString("vi-VN", {
+              style: "currency",
+              currency: "VND",
+            })}
+          </Text>
+        </View>
+        <Text style={styles.cardPrice}>
+          {/* Định dạng và thêm "VND" */}
+          {product.newPrice.toLocaleString("vi-VN", {
+              style: "currency",
+              currency: "VND",
+            })}
+        </Text>
+      </View>
     </View>
   );
 };
 
-// Styles cho CardviewProductSale
 const styles = StyleSheet.create({
   card: {
-    marginRight: 10,
     backgroundColor: "#fff",
-    borderRadius: 8,
-    padding: 10,
+    width: screenWidth * 0.3,
+    borderRadius: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    elevation: 3,
+    margin: 3,
   },
   imageContainer: {
     position: "relative",
   },
   cardImage: {
-    width: 120,
+    width: screenWidth * 0.3,
     height: 120,
     marginBottom: 5,
     borderRadius: 8,
-  },
-  cardName: {
-    fontSize: 14,
-    fontWeight: "bold",
-    alignSelf: "flex-start",
-  },
-  oldPrice: {
-    color: "#888",
-    fontSize: 8,
-    textDecorationLine: "line-through",
-    marginRight: 5,
-  },
-  cardPrice: {
-    color: "#ff0000",
-    fontSize: 13,
-    fontWeight: "bold",
   },
   discountBadge: {
     position: "absolute",
@@ -100,6 +103,36 @@ const styles = StyleSheet.create({
   discountText: {
     color: "#fff",
     fontSize: 12,
+    fontWeight: "bold",
+  },
+  cardName: {
+    fontSize: 14,
+    fontWeight: "500",
+    alignSelf: "flex-start",
+    flexWrap: "wrap",
+    minHeight: 40,
+  },
+  priceContainer: {
+    flex: 1,
+    justifyContent: "flex-end",
+    paddingLeft: 5,
+  },
+  oldPriceContainer: {
+    flexDirection: "row-reverse",
+    width: screenWidth * 0.3,
+    justifyContent: "space-between",
+    paddingRight: 10,
+  },
+  oldPrice: {
+    color: "#888",
+    fontSize: 10,
+    textDecorationLine: "line-through",
+    marginRight: 5,
+    textAlign: "right",
+  },
+  cardPrice: {
+    color: "#ff8000",
+    fontSize: 15,
     fontWeight: "bold",
   },
 });
