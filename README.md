@@ -25,6 +25,7 @@
 - [Hướng dẫn từng bước](https://docs.expo.dev/tutorial/introduction/)
 
 
+
 my-expo-app/
 │── app/                     # Chứa các màn hình và điều hướng chính
 
