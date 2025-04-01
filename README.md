@@ -14,6 +14,7 @@
    npx expo start
    ```
 
+--Thinh
 Ứng dụng có thể chạy trên:
 - Giả lập Android ([Hướng dẫn](https://docs.expo.dev/workflow/android-studio-emulator/))
 - Trình giả lập iOS ([Hướng dẫn](https://docs.expo.dev/workflow/ios-simulator/))
