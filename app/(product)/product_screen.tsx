@@ -1,6 +1,7 @@
 import React, { useRef, useState } from 'react'
 import { StyleSheet, Text, View, Image, TouchableOpacity, TextInput, Dimensions, FlatList, Animated, ScrollView, Modal, NativeSyntheticEvent, NativeScrollEvent } from 'react-native'
 import { AntDesign, FontAwesome } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 
 const { width, height } = Dimensions.get('window');
 const IMAGE_HEIGHT = 250;
@@ -46,6 +47,10 @@ const reviews = [
 ];
 
 
+const icons = {
+  cart: require("../../assets/images/cart_img.png"),
+};
+
 const Product_screen = () => {
   const scrollX = useRef(new Animated.Value(0)).current;
   const [isFavorite, setIsFavorite] = useState(false);
@@ -59,24 +64,21 @@ const Product_screen = () => {
   return (
     <View style={styles.Product_Screen}>
       {/* Header */}
-      <View style={styles.header_product}>
-        <TouchableOpacity>
-          <Image source={{ uri: 'https://cdn-icons-png.flaticon.com/128/507/507257.png' }} style={styles.icon_back}></Image>
-        </TouchableOpacity>
-        <View style={styles.search}>
-          <TouchableOpacity style={styles.select_search}>
-            <Image source={{ uri: 'https://cdn-icons-png.flaticon.com/128/151/151773.png' }} style={styles.icon_search}></Image>
+      <View style={styles.fixedHeader}>
+        <View style={styles.headerContainer}>
+          <View style={styles.searchContainer}>
+            <Ionicons name="search-outline" size={20} color="#888" style={styles.searchIcon} />
+            <TextInput style={styles.searchInput} placeholder="Tìm sản phẩm" placeholderTextColor="#888" />
+          </View>
+          <TouchableOpacity style={styles.cartIconContainer}>
+            <View style={styles.iconBackground}>
+              <Image source={icons.cart} style={styles.ic_cart} />
+            </View>
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>1</Text>
+            </View>
           </TouchableOpacity>
-          <TextInput placeholder='Tìm sản phẩm' style={styles.input_search}></TextInput>
         </View>
-        <TouchableOpacity style={styles.button_cart}>
-          <View style={styles.select_cart}>
-            <Image source={{ uri: 'https://cdn-icons-png.flaticon.com/128/1170/1170678.png' }} style={styles.cart_image} />
-          </View>
-          <View style={styles.cart_icon}>
-            <Text style={styles.text_cart}>10</Text>
-          </View>
-        </TouchableOpacity>
       </View>
       {/* Product Image */}
       {/* Nội dung cuộn được */}
@@ -133,16 +135,9 @@ const Product_screen = () => {
         <View style={styles.description}>
           <Text style={styles.description_name}>Mô tả sản phẩm</Text>
           <Text style={styles.description_text} numberOfLines={expanded ? undefined : 3}>
-            Áo thun nữ  cộc tay nhún eo vạt chéo , Xoắn Eo Cổ Tròn   CaMa Store M1176
-
+            Áo thun nữ  cộc tay nhún eo vạt chéo , Xoắn Eo Cổ Tròn   CaMa Store M117
             Áo thun nữ năng động, xinh xắn luôn là sản phẩm yêu thích của các cô gái trẻ và chưa bao giờ bị xem là lỗi mốt theo thời gian. áo thun nữ tay ngắn,tay dài form rộng khiến việc vận động dễ dàng thoải mái giúp phái đẹp tham gia vào các hoạt động một cách tự tin hơn. Áo thun nữ có cổ dạng cổ tim,cổ vuông dáng ôm sẽ mang lại ấn tượng trẻ trung, khỏe khoắn cho người mặc. Những chiếc áo thun nữ cao cấp phù hợp cho mọi hoàn cảnh, bạn có thể mặc nó đến những bữa tiệc, dã ngoại ngoài trời hay ngay cả khi làm việc.
-
-
-
             Áo thun nữ form rộng không những không khiến người mặc trở nên luộm thuộm mà ngược lại, trông rất phong cách với kiểu dáng tay lỡ,tay dài. Và dĩ nhiên là áo thun nữ form rộng unisex giá rẻ in hình nữ tính mặc cũng rất thoải mái rồi. Đôi khi nhìn các cô nàng còn rất đáng yêu, khả ái nữa cơ.
-
-
-
             Áo thun nữ tay ngắn là một item không thể thiếu trong tủ đồ của những cô nàng sành điệu. Nhất là khi hè về, những mẫu áo phông nữ ngắn tay được thiết kế với dáng ôm hoặc form rộng cổ tròn in hình cá tính, đẹp mắt được sản xuất hàng loạt và nhanh chóng cháy hàng.
           </Text>
 
@@ -233,7 +228,7 @@ const Product_screen = () => {
         </TouchableOpacity>
 
         {/* Modal */}
-        <Modal animationType="slide" transparent={true} visible={modalVisible}>
+        <Modal animationType="slide" transparent={true} visible={modalVisible} onRequestClose={() => setModalVisible(false)} >
           <View style={styles.modal_product}>
             <View style={styles.modalContent}>
               <View style={styles.modalBody}>
@@ -542,5 +537,69 @@ const styles = StyleSheet.create({
   quantityNumber: {
     fontSize: width * 0.035,
     fontWeight: 'bold',
+  },
+  fixedHeader: {
+    backgroundColor: "#fff",
+    zIndex: 1,
+    marginTop: 20,
+  },
+  headerContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 10,
+    paddingVertical: 10,
+  },
+  searchContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#f0f0f0",
+    borderRadius: 20,
+    paddingVertical: 5,
+    paddingHorizontal: 15,
+    flex: 1,
+    marginRight: 10,
+  },
+  searchIcon: {
+    marginRight: 10,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 16,
+    color: "#000",
+  },
+  cartIconContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  iconBackground: {
+    width: 50, // Kích thước nền tròn
+    height: 50,
+    borderRadius: 50, // Làm tròn viền (bằng 1/2 width & height)
+    backgroundColor: "#EEEDED", // Màu nền (đổi theo UI của bạn)
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  
+  badge: {
+    position: "absolute",
+    top: -5,
+    right: -5,
+    backgroundColor: "#FF0000",
+    borderRadius: 10,
+    width: 16,
+    height: 16,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  badgeText: {
+    color: "#fff",
+    fontSize: 10,
+    fontWeight: "bold",
+  },
+  ic_cart: {
+    width: 30,
+    height: 30,
+    resizeMode: "contain",
   },
 })
