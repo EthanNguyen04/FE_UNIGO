@@ -49,7 +49,7 @@ export default function NotiScreen() {
 
       {/* Link đến Flash Sale */}
       <Button title="Chuyển đến Sale" onPress={() => router.push("/flash_sale_screen")} />
-      <Button title="Chuyển đến product" onPress={() => router.push("/product_screen")} />
+      <Button title="Chuyển đến product" onPress={() => router.push("/product_screen")}/>
     </View>
   );
 }
