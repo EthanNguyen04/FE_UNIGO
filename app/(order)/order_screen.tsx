@@ -2,6 +2,7 @@ import React from 'react';
 import { StyleSheet, View, Text, FlatList, TouchableOpacity, SafeAreaView } from 'react-native';
 import ItemProductOrder, { Order } from '../../components/order/item_product_order'
 import { Ionicons } from '@expo/vector-icons';
+import HeaderWithBack from '@/components/custom/headerTop';
 
 const orderList: Order[] = [
     {
@@ -33,6 +34,7 @@ const orderList: Order[] = [
 const OrderScreen = () => {
     return (
         <SafeAreaView style={styles.containerSafeArea}>
+            <HeaderWithBack title="Giỏ hàng" />
             <View style={styles.container}>
                 <View style={styles.containerInfo}>
                     <View style={styles.containerAdress}>
@@ -93,7 +95,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        gap:8
+        gap: 8
     },
     addressTitle: {
         fontSize: 22,
