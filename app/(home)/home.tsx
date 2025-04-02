@@ -60,7 +60,6 @@ const productsSale: ProductSale[] = [
 
 export default function HomeScreen() {
   const [selectedCategory, setSelectedCategory] = useState<string>("Đề xuất");
-  const categories: string[] = ["Đề xuất", "Quần bò", "Áo thun", "Quần jeans"];
 
   return (
     <View style={styles.container}>
@@ -87,14 +86,12 @@ export default function HomeScreen() {
             showsHorizontalScrollIndicator={false}
           />
         </View>
+        <View style={styles.divider} />
 
-        {/* Danh mục */}
-        <View style={styles.categoryContainer}>
-          {categories.map((category) => (
-            <TouchableOpacity key={category} style={[styles.categoryButton, selectedCategory === category && styles.selectedCategoryButton]} onPress={() => setSelectedCategory(category)}>
-              <Text style={[styles.categoryText, selectedCategory === category && styles.selectedCategoryText]}>{category}</Text>
-            </TouchableOpacity>
-          ))}
+        {/* Danh mục  // không cần thêm gì*/}
+        <View style={styles.saleHeader}>
+            <Text style={styles.textDexuat}>Đề xuất</Text>
+            <Text style={styles.textSale}>Xem {">"}</Text>
         </View>
 
         {/* Sản phẩm gợi ý */}
@@ -157,10 +154,19 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignSelf: "center",
     alignItems: "center",
+    marginBottom: 5,
+  },
+  textDexuat:{
+    textAlign: "left",
+    marginLeft: 10,
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#Ff8000"
   },
   textSale: {
     textAlign: "right",
     marginRight: 30,
+    color: "#Ff8000"
   },
   categoryContainer: {
     flexDirection: "row",
@@ -185,5 +191,12 @@ const styles = StyleSheet.create({
   },
   columnWrapper: {
     justifyContent: "space-between",
+  },
+  divider: {
+    width: screenWidth*0.95,   // Chiều rộng thay đổi thành chiều dài
+    height: 1,
+    backgroundColor: "rgb(202, 202, 202)",
+    marginHorizontal: screenWidth * 0.01,
+    justifyContent:"center"
   },
 });
