@@ -21,11 +21,11 @@ interface Product {
   image: ImageSourcePropType;
 }
 
-interface CardviewProductSaleProps {
+interface ItemProductSale {
   product: Product;
 }
 
-const CardviewProductSale: React.FC<CardviewProductSaleProps> = ({ product }) => {
+const ItemProductSale: React.FC<ItemProductSale> = ({ product }) => {
   return (
     <View style={styles.card}>
       <View style={styles.imageContainer}>
@@ -73,7 +73,7 @@ const CardviewProductSale: React.FC<CardviewProductSaleProps> = ({ product }) =>
 const styles = StyleSheet.create({
   card: {
     backgroundColor: "#fff",
-    width: screenWidth * 0.3,
+    width: screenWidth * 0.45,
     borderRadius: 10,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
@@ -86,8 +86,8 @@ const styles = StyleSheet.create({
     position: "relative",
   },
   cardImage: {
-    width: screenWidth * 0.3,
-    height: 120,
+    width: screenWidth * 0.45,
+    height: 150,
     marginBottom: 5,
     borderRadius: 8,
   },
@@ -137,4 +137,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default CardviewProductSale;
+export default ItemProductSale;

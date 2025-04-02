@@ -2,12 +2,43 @@ import { View, Text, StyleSheet, ImageBackground, TouchableOpacity } from "react
 import CustomText from "@/components/custom/CustomText";
 import Feather from "react-native-vector-icons/Feather";
 import { useRouter } from "expo-router"; 
+import { useEffect } from "react";
+import AsyncStorage from '@react-native-async-storage/async-storage';  // Import AsyncStorage
 
 export default function IntroScreen() {
-    const router = useRouter(); // Sử dụng useRouter để điều hướng
+  const router = useRouter(); // Sử dụng useRouter để điều hướng
+
+  useEffect(() => {
+    // Kiểm tra AsyncStorage xem có giá trị InApp không
+    const checkInApp = async () => {
+      try {
+        const inApp = await AsyncStorage.getItem("InApp");
+        
+        if (inApp === "true") {
+          // Nếu InApp = true, điều hướng ngay đến /home mà không cần hiển thị màn hình intro
+          router.replace("/home"); // Sử dụng replace để không cho phép quay lại màn hình intro
+        }
+      } catch (error) {
+        console.error("Error reading AsyncStorage", error);
+      }
+    };
+
+    checkInApp();  // Kiểm tra khi component được render
+  }, [router]);
+
+  const handleStart = async () => {
+    try {
+      // Khi nhấn bắt đầu, thiết lập AsyncStorage InApp = true và điều hướng đến /home
+      await AsyncStorage.setItem("InApp", "true");
+      router.replace("/home"); // Điều hướng đến trang home và không cho phép quay lại màn hình intro
+    } catch (error) {
+      console.error("Error writing AsyncStorage", error);
+    }
+  };
+
   return (
     <ImageBackground 
-      source={require("../../assets/images/intro_img.png")} // Ảnh nền
+      source={require("../assets/images/intro_img.png")} // Ảnh nền
       style={styles.background}
     >
       <View style={styles.overlay}>
@@ -15,8 +46,7 @@ export default function IntroScreen() {
         <CustomText style={styles.subtitle}>Khám phá thời trang cùng chúng tôi</CustomText>
       </View>
 
-      <TouchableOpacity style={styles.button} onPress={() => router.push("/")}
-      >
+      <TouchableOpacity style={styles.button} onPress={handleStart}>
         <Text style={styles.buttonText}>Bắt đầu</Text>
         <Feather name="arrow-right" size={24} color="white" style={styles.icon} />
       </TouchableOpacity>
