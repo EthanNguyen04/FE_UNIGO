@@ -1,8 +1,10 @@
 import React, { useState } from "react";
-import { View, Text, StyleSheet, Image, TouchableOpacity, FlatList } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, FlatList } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import LogoutDialog from "../../components/home/LogoutDialog";
+import { Image } from 'expo-image';  // Import expo-image
+import CartIcon from "@/components/custom/CartIcon";
 
 const settings = [
   { id: "1", title: "Tài Khoản & Bảo Mật" },
@@ -16,7 +18,8 @@ const icons = {
   cho_lay: require("../../assets/images/send_img.png"),
   cho_giao: require("../../assets/images/sending_img.png"),
   review: require("../../assets/images/evalute_img.png"),
-};
+  user: require("../../assets/images/avatar.png"),
+}
 
 export default function ProfileScreen() {
   const [logoutVisible, setLogoutVisible] = useState(false);
@@ -32,8 +35,9 @@ export default function ProfileScreen() {
       {/* Header */}
       <View style={styles.header}>
         <Image
-          source={{ uri: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSs7vpY7VDzQP-Mo5L5fUPh4uWg4-ALCeMDVw&s" }}
+          source={icons.user}
           style={styles.avatar}
+          contentFit="cover"
         />
         <View style={styles.userInfo}>
           <Text style={styles.username}>DATN_MD</Text>
@@ -42,12 +46,7 @@ export default function ProfileScreen() {
             <Text style={styles.statText}>11 Được thích</Text>
           </View>
         </View>
-        <TouchableOpacity style={styles.cartIconContainer}>
-          <Ionicons name="cart-outline" size={24} color="#333" />
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>1</Text>
-          </View>
-        </TouchableOpacity>
+        <CartIcon />
       </View>
 
       {/* Đơn Mua */}
@@ -60,19 +59,19 @@ export default function ProfileScreen() {
         </View>
         <View style={styles.orderIcons}>
           <TouchableOpacity style={styles.orderItem}>
-            <Image source={icons.xac_nhan} style={styles.orderIcon} />
+            <Image source={icons.xac_nhan} style={styles.orderIcon} contentFit="contain"/>
             <Text style={styles.orderLabel}>Chờ xác nhận</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.orderItem}>
-            <Image source={icons.cho_lay} style={styles.orderIcon} />
+            <Image source={icons.cho_lay} style={styles.orderIcon} contentFit="contain"/>
             <Text style={styles.orderLabel}>Chờ lấy hàng</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.orderItem}>
-          <Image source={icons.cho_giao} style={styles.orderIcon} />
+            <Image source={icons.cho_giao} style={styles.orderIcon} contentFit="contain"/>
             <Text style={styles.orderLabel}>Chờ giao hàng</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.orderItem}>
-          <Image source={icons.review} style={styles.orderIcon} />
+            <Image source={icons.review} style={styles.orderIcon} contentFit="contain"/>
             <Text style={styles.orderLabel}>Đánh giá</Text>
           </TouchableOpacity>
         </View>
@@ -137,33 +136,6 @@ const styles = StyleSheet.create({
     marginRight: 15,
     fontWeight:"bold"
   },
-  cartIconContainer: {
-    position: "relative",
-    backgroundColor: "#f0f0f0",
-    borderRadius: 50,
-    padding: 8,
-  },
-  badge: {
-    position: "absolute",
-    top: -5,
-    right: -5,
-    backgroundColor: "#FF0000",
-    borderRadius: 10,
-    width: 16,
-    height: 16,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  badgeText: {
-    color: "#fff",
-    fontSize: 10,
-    fontWeight: "bold",
-  },
-  orderSection: {
-    backgroundColor: "#fff",
-    padding: 15,
-    marginBottom: 10,
-  },
   orderHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -181,22 +153,17 @@ const styles = StyleSheet.create({
   },
   orderIcons: {
     flexDirection: "row",
-    justifyContent: "space-evenly", // Chia đều khoảng cách giữa các icon
-    alignItems: "center", // Căn giữa theo chiều dọc
-    paddingVertical: 0, // Thêm khoảng cách dọc cho đẹp hơn
+    justifyContent: "space-evenly",
+    alignItems: "center",
+    paddingVertical: 0,
   },
   orderItem: {
     alignItems: "center",
   },
   orderLabel: {
-    fontSize: 12,
+    fontSize: 10,
     color: "#333",
     marginTop: 5,
-  },
-  settingsSection: {
-    backgroundColor: "#fff",
-    padding: 15,
-    flex: 1,
   },
   settingItem: {
     flexDirection: "row",
@@ -221,12 +188,10 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
-    elevation: 3, // Hiệu ứng đổ bóng cho Android
+    elevation: 3,
   },
   orderIcon: {
     width: 50,
     height: 50,
-    resizeMode: "contain",
   },
-  
 });
