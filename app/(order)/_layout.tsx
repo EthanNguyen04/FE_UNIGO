@@ -2,7 +2,7 @@ import { Stack } from "expo-router";
 import { useEffect } from "react";
 import { useNavigation } from "expo-router";
 
-export default function IntroLayout() {
+export default function OrderLayout() {
     const navigation = useNavigation();
     
     useEffect(() => {

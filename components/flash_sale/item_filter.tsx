@@ -1,43 +1,44 @@
 import React from 'react';
-import { StyleSheet, View, Image, Text, ImageSourcePropType, TouchableOpacity } from 'react-native';
-import { Colors } from "@/constants/Colors";
+import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
 
 interface TypeClothes {
-    id: number;
-    imageSource: ImageSourcePropType;
-    label: string;
-    selected?: boolean;
-    onPress?: () => void;
+  id: number;
+  label: string;
+  selected?: boolean;
+  onPress?: () => void;
 }
+
 const ItemFilterClothes: React.FC<TypeClothes> = (props) => {
-    return (
-      <TouchableOpacity onPress={props.onPress} style={styles.container}>
-        <View style={[styles.imageContainer, props.selected && styles.selectedContainer]}>
-          <Image source={props.imageSource} style={styles.image} />
-        </View>
-        <Text>{props.label}</Text>
-      </TouchableOpacity>
-    );
-  };
-  
-  const styles = StyleSheet.create({
-    container: {
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-    imageContainer: {
-      borderRadius: 50,
-      overflow: 'hidden', 
-    },
-    image: {
-      width: 70,
-      height: 70,
-      resizeMode: 'cover',
-    },
-    selectedContainer: {
-      borderColor: 'red',
-      borderWidth: 2
-    },
-  });
+  return (
+    <TouchableOpacity 
+      onPress={props.onPress} 
+      style={[styles.container, props.selected && styles.selectedContainer]}
+    >
+      <Text style={styles.label}>{props.label}</Text>
+    </TouchableOpacity>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    backgroundColor: '#f0f0f0',
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+    margin: 5,
+  },
+  label: {
+    fontSize: 10,
+    color: '#333',
+  },
+  selectedContainer: {
+    borderColor: 'red',
+    borderWidth: 2,
+  },
+});
 
 export default ItemFilterClothes;

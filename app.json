@@ -15,7 +15,9 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/logo_img.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "softwareKeyboardLayoutMode": "pan"
+      
     },
     "web": {
       "bundler": "metro",
@@ -29,7 +31,7 @@
         {
           "image": "./assets/images/logo_img.png",
           "imageWidth": 200,
-          "resizeMode": "contain",
+          "contentFit": "contain",
           "backgroundColor": "#ffffff"
         }
       ]
@@ -37,5 +39,6 @@
     "experiments": {
       "typedRoutes": true
     }
+
   }
 }
