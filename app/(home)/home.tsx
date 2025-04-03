@@ -16,6 +16,10 @@ import CardviewProductSale from "../../components/home/CardviewProductSale";
 import { router } from "expo-router";
 import FixedHeader from "@/components/custom/FixedHeader";
 
+import { BASE_URL } from '@env';
+
+console.log('API URL:', BASE_URL); 
+
 const screenWidth = Dimensions.get("window").width;
 
 // Định nghĩa kiểu cho sản phẩm
