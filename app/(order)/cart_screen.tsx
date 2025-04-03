@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { FlatList, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import ItemProductCart from '../../components/order/item_product_cart';
 import { Cart } from '../../components/order/item_product_cart';
+import HeaderWithBack from '@/components/custom/headerTop';
 
 const cartData: Cart[] = [
     {
@@ -49,6 +50,7 @@ const CartScreen = () => {
       );
     return (
         <SafeAreaView style={styles.safeArea}>
+             <HeaderWithBack title="Giỏ hàng" />
             <View style={styles.container} >
                 <FlatList
                     data={cartData}
