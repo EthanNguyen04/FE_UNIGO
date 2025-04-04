@@ -1,103 +1,139 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
   StyleSheet,
-  TextInput,
   FlatList,
-  TouchableOpacity,
   Dimensions,
   ScrollView,
+  Image as RNImage,
   ImageSourcePropType,
 } from "react-native";
-import { Image } from "expo-image"; // Sử dụng expo-image cho việc load ảnh từ URL
-import CardviewProductSuggest from "../../components/home/CardviewProductSuggest";
-import CardviewProductSale from "../../components/home/CardviewProductSale";
 import { router } from "expo-router";
 import FixedHeader from "@/components/custom/FixedHeader";
+import CardviewProductSuggest from "../../components/home/CardviewProductSuggest";
+import CardviewProductSale from "../../components/home/CardviewProductSale";
+import { BASE_URL } from "../../api";
 
 const screenWidth = Dimensions.get("window").width;
-
-import { BASE_URL } from '../../api';
-
-console.log('API URL:', BASE_URL); 
-// Định nghĩa kiểu cho sản phẩm
-interface ProductSuggest {
-  id: string;
-  name: string;
-  price: number;  // Giá gốc
-  priceSale: number;  // Giá sale
-  image: ImageSourcePropType; // Dùng kiểu cho ImageSourcePropType
-}
 
 interface ProductSale {
   id: string;
   name: string;
-  oldPrice: number;  // Giá cũ
-  newPrice: number;  // Giá mới
+  oldPrice: number;
+  newPrice: number;
   discount: string;
   image: ImageSourcePropType;
 }
 
-const productsSuggest: ProductSuggest[] = [
-  { id: "1", name: "Áo Khoác Phao", price: 1000000, priceSale: 9000000, image: { uri: "https://dongphuchaianh.com/wp-content/uploads/2024/01/mau-ao-olop-polo-oversize-iconic-mau-trang.jpg" } },
-  { id: "2", name: "Áo Khoác Phao", price: 1000000, priceSale: 900000, image: { uri: "https://bizweb.dktcdn.net/thumb/1024x1024/100/415/445/products/ao-thi-dau-doi-tuyen-viet-nam-2023-grand-sport-38977-do-2-1669090485180.jpg" } },
-  { id: "3", name: "Áo Khoác Phao", price: 1000000, priceSale: 0, image: { uri: "https://bizweb.dktcdn.net/thumb/1024x1024/100/415/445/products/0e29415e-0f1b-44b2-85ce-e810ef4cff83.jpg" } },  // Example image URL
-  { id: "4", name: "Áo Khoác Phao", price: 1000000, priceSale: 900000, image: { uri: "https://bizweb.dktcdn.net/thumb/1024x1024/100/415/445/products/0e29415e-0f1b-44b2-85ce-e810ef4cff83.jpg" } },  // Example image URL
-  { id: "5", name: "Áo Khoác Phao", price: 1000000, priceSale: 900000, image: { uri: "https://bizweb.dktcdn.net/100/348/425/products/z3956140470110-a0d2688114c26356d571cd7202460152.jpg?v=1672302848407" } },  // Example image URL
-  // Thêm các sản phẩm khác
-];
-
-const productsSale: ProductSale[] = [
-  { id: "1", name: "Áo Khoác Phao Khoác Phao Khoác Phao", oldPrice: 1250000, newPrice: 1000000, discount: "20%", image: { uri: "https://dongphuchaianh.com/wp-content/uploads/2024/01/mau-ao-olop-polo-oversize-iconic-mau-trang.jpg" } },
-  { id: "2", name: "Áo Khoác Phao", oldPrice: 1250000, newPrice: 1000000, discount: "20%", image: { uri: "https://vulcano.sgp1.digitaloceanspaces.com/media/15404/conversions/ao-thun-1001-vulcano01-card_preview.webp" } },
-  { id: "3", name: "Áo Khoác Phao", oldPrice: 1250000, newPrice: 1000000, discount: "20%", image: { uri: "https://dongphucpanda.com/wp-content/uploads/2024/09/947-ao-lop-polo-mix-co-v-bst-cool-ngau-ca-tinh-mau-xi-mang-1.jpg" } },
-  { id: "4", name: "Áo Khoác Phao", oldPrice: 1250000, newPrice: 1000000, discount: "20%", image: { uri: "https://dongphuchaianh.com/wp-content/uploads/2024/01/mau-ao-olop-polo-oversize-iconic-mau-trang.jpg" } },
-  { id: "5", name: "Áo Khoác Phao", oldPrice: 1250000, newPrice: 1000000, discount: "20%", image: { uri: "https://dongphuchaianh.com/wp-content/uploads/2024/01/mau-ao-olop-polo-oversize-iconic-mau-trang.jpg" }},
-  { id: "6", name: "Áo Khoác Phao", oldPrice: 1250000, newPrice: 1000000, discount: "20%", image: { uri: "https://dongphuchaianh.com/wp-content/uploads/2024/01/mau-ao-olop-polo-oversize-iconic-mau-trang.jpg" } },
-  { id: "7", name: "Áo Khoác Phao", oldPrice: 1250000, newPrice: 1000000, discount: "20%", image: { uri: "https://dongphuchaianh.com/wp-content/uploads/2024/01/mau-ao-olop-polo-oversize-iconic-mau-trang.jpg" } },
-  { id: "8", name: "Áo Khoác Phao", oldPrice: 1250000, newPrice: 1000000, discount: "20%", image: { uri: "https://dongphuchaianh.com/wp-content/uploads/2024/01/mau-ao-olop-polo-oversize-iconic-mau-trang.jpg" } },
-];
-
-
+interface ProductSuggest {
+  id: string;
+  name: string;
+  price: number;
+  priceSale: number;
+  image: ImageSourcePropType;
+}
 
 export default function HomeScreen() {
-  const [selectedCategory, setSelectedCategory] = useState<string>("Đề xuất");
+  const [productsSale, setProductsSale] = useState<ProductSale[]>([]);
+  const [productsSuggest, setProductsSuggest] = useState<ProductSuggest[]>([]);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        // ✅ FLASH SALE
+        const saleRes = await fetch(`${BASE_URL}/api/product/products_sale`);
+        const saleJson = await saleRes.json();
+
+        const sortedSale = saleJson.products
+          .sort((a: any, b: any) => b.discount_percent - a.discount_percent)
+          .slice(0, 10); // Lấy tối đa 10 sản phẩm
+
+        const saleData: ProductSale[] = sortedSale.map((item: any) => ({
+          id: item.id,
+          name: item.name,
+          oldPrice: item.price,
+          newPrice: item.sale_price,
+          discount: `${item.discount_percent}%`,
+          image: { uri: `${BASE_URL}${item.link}` },
+        }));
+
+        setProductsSale(saleData);
+      } catch (error) {
+        console.error("❌ Lỗi khi gọi API sản phẩm sale:", error);
+      }
+
+      try {
+        // ✅ SẢN PHẨM ĐỀ XUẤT
+        const suggestRes = await fetch(`${BASE_URL}/api/product/products_dx`);
+        const suggestJson = await suggestRes.json();
+
+        const limitedSuggest = suggestJson.products.slice(0, 20); // Lấy tối đa 20 sản phẩm
+
+        const suggestData: ProductSuggest[] = limitedSuggest.map((item: any) => ({
+          id: item.id,
+          name: item.name,
+          price: item.original_price,
+          priceSale: item.discount_price,
+          image: { uri: `${BASE_URL}${item.link}` },
+        }));
+
+        setProductsSuggest(suggestData);
+      } catch (error) {
+        console.error("❌ Lỗi khi gọi API sản phẩm đề xuất:", error);
+      }
+    };
+
+    fetchProducts();
+  }, []);
 
   return (
     <View style={styles.container}>
-      {/* Thanh tìm kiếm cố định */}
       <FixedHeader />
 
-      {/* Nội dung cuộn */}
-      <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" >
-        {/* Banner */}
-        <Image source={require("../../assets/images/banner.png")} contentFit="contain" style={styles.image_Banner} />
+      <ScrollView
+        style={styles.scrollContainer}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
+        <RNImage
+          source={require("../../assets/images/banner.png")}
+style={styles.image_Banner}
+        />
 
-        {/* Danh sách sản phẩm giảm giá */}
+        {/* FLASH SALE */}
         <View style={styles.saleSection}>
           <View style={styles.saleHeader}>
-            <Image source={require("../../assets/images/sale_img.gif")} style={styles.image_gif} contentFit="contain"/>
+            <RNImage
+              source={require("../../assets/images/sale_img.gif")}
+              style={styles.image_gif}
+            />
             <Text style={styles.textSale}>Xem {">"}</Text>
           </View>
-          
+
           <FlatList
             horizontal
             data={productsSale}
             keyExtractor={(item) => item.id}
-            renderItem={({ item }) => <CardviewProductSale product={item} />}
+            renderItem={({ item }) => (
+              <CardviewProductSale
+                product={item}
+                onPress={() => router.push(`/product_screen?id=${item.id}`)}
+              />
+            )}
             showsHorizontalScrollIndicator={false}
           />
         </View>
+
         <View style={styles.divider} />
 
-        {/* Danh mục  // không cần thêm gì*/}
+        {/* SẢN PHẨM ĐỀ XUẤT */}
         <View style={styles.saleHeader}>
-            <Text style={styles.textDexuat}>Đề xuất</Text>
-            <Text style={styles.textSale}>Xem {">"}</Text>
+          <Text style={styles.textDexuat}>Đề xuất</Text>
+          <Text style={styles.textSale}>Xem {">"}</Text>
         </View>
 
-        {/* Sản phẩm gợi ý */}
         <FlatList
           data={productsSuggest}
           keyExtractor={(item) => item.id}
@@ -107,13 +143,10 @@ export default function HomeScreen() {
             <CardviewProductSuggest
               product={{
                 ...item,
-                price: item.price, // Giá gốc
+                price: item.price,
                 priceSale: item.priceSale > 0 ? item.priceSale : 0,
               }}
-              onPress={() => {
-                // Ví dụ chuyển hướng đến '/product/[id]' với id là item.id
-                router.push("/product_screen");
-              }}
+              onPress={() => router.push(`/product_screen?id=${item.id}`)}
             />
           )}
           showsVerticalScrollIndicator={false}
@@ -124,7 +157,6 @@ export default function HomeScreen() {
   );
 }
 
-// Styles remains the same...
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -143,10 +175,12 @@ const styles = StyleSheet.create({
     width: "100%",
     alignSelf: "center",
     aspectRatio: 10 / 3,
+    resizeMode: "cover",
   },
   image_gif: {
     width: "25%",
     aspectRatio: 6 / 3,
+    resizeMode: "contain",
   },
   saleSection: {
     marginBottom: 10,
@@ -159,47 +193,26 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 5,
   },
-  textDexuat:{
+  textDexuat: {
     textAlign: "left",
     marginLeft: 10,
     fontSize: 18,
     fontWeight: "bold",
-    color: "#Ff8000"
+    color: "#Ff8000",
   },
   textSale: {
     textAlign: "right",
     marginRight: 30,
-    color: "#Ff8000"
-  },
-  categoryContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginVertical: 10,
-  },
-  categoryButton: {
-    backgroundColor: "#f0f0f0",
-    paddingVertical: 5,
-    paddingHorizontal: 10,
-    borderRadius: 14,
-  },
-  selectedCategoryButton: {
-    backgroundColor: "#FF8000",
-  },
-  categoryText: {
-    fontSize: 14,
-    fontWeight: "bold",
-  },
-  selectedCategoryText: {
-    color: "#fff",
+    color: "#Ff8000",
   },
   columnWrapper: {
     justifyContent: "space-between",
   },
   divider: {
-    width: screenWidth*0.95,   // Chiều rộng thay đổi thành chiều dài
+    width: screenWidth * 0.95,
     height: 1,
     backgroundColor: "rgb(202, 202, 202)",
     marginHorizontal: screenWidth * 0.01,
-    justifyContent:"center"
+    justifyContent: "center",
   },
 });
