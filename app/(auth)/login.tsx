@@ -73,10 +73,13 @@ export default function LoginScreen() {
         setLoading(false); // Kết thúc loading
       }
 
+<<<<<<< HEAD
+=======
       // Xử lý đăng nhập
       console.log("Đăng nhập thành công");
       router.push("/home");
       
+>>>>>>> a7ccfa7224ae5c39bcf4523b551adf88cc03e7a5
     }
   };
 

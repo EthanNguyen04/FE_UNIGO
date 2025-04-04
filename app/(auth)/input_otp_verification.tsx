@@ -30,7 +30,7 @@ export default function OTPVerificationScreen() {
         });
 
         if (response.status === 200) {
-          Alert.alert("Thành công", "Đăng nhập thành công!");
+          Alert.alert("", "Đăng nhập thành công!");
           router.push("/home");
         } else {
           Alert.alert("Lỗi", "OTP không đúng hoặc đăng nhập thất bại.");
