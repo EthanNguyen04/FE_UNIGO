@@ -45,6 +45,7 @@ export default function LoginScreen() {
     setPasswordError(passwordValidation);
 
     if (!emailValidation && !passwordValidation) {
+
       setLoading(true); // Bắt đầu loading khi gọi API
       try {
         const response = await fetch("http://192.168.31.165:3000/api/user/login", {
@@ -71,6 +72,11 @@ export default function LoginScreen() {
       } finally {
         setLoading(false); // Kết thúc loading
       }
+
+      // Xử lý đăng nhập
+      console.log("Đăng nhập thành công");
+      router.push("/home");
+      
     }
   };
 
