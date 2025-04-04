@@ -7,9 +7,9 @@ import {
   ImageSourcePropType,
   ImageBackground,
   Dimensions,
+  TouchableOpacity, // <- THÊM DÒNG NÀY
 } from "react-native";
 
-// Lấy chiều rộng màn hình
 const screenWidth = Dimensions.get('window').width;
 
 interface Product {
@@ -23,11 +23,12 @@ interface Product {
 
 interface CardviewProductSaleProps {
   product: Product;
+  onPress?: () => void; // <- THÊM PROPS onPress
 }
 
-const CardviewProductSale: React.FC<CardviewProductSaleProps> = ({ product }) => {
+const CardviewProductSale: React.FC<CardviewProductSaleProps> = ({ product, onPress }) => {
   return (
-    <View style={styles.card}>
+    <TouchableOpacity style={styles.card} onPress={onPress}>
       <View style={styles.imageContainer}>
         <Image source={product.image} style={styles.cardImage} />
         <ImageBackground
@@ -47,11 +48,9 @@ const CardviewProductSale: React.FC<CardviewProductSaleProps> = ({ product }) =>
         {product.name}
       </Text>
 
-      {/* View chứa giá cũ và giá mới, căn chúng xuống dưới */}
       <View style={styles.priceContainer}>
         <View style={styles.oldPriceContainer}>
           <Text style={styles.oldPrice}>
-            {/* Định dạng và thêm "VND" */}
             {product.oldPrice.toLocaleString("vi-VN", {
               style: "currency",
               currency: "VND",
@@ -59,21 +58,20 @@ const CardviewProductSale: React.FC<CardviewProductSaleProps> = ({ product }) =>
           </Text>
         </View>
         <Text style={styles.cardPrice}>
-          {/* Định dạng và thêm "VND" */}
           {product.newPrice.toLocaleString("vi-VN", {
-              style: "currency",
-              currency: "VND",
-            })}
+            style: "currency",
+            currency: "VND",
+          })}
         </Text>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 };
 
 const styles = StyleSheet.create({
   card: {
     backgroundColor: "#fff",
-    width: screenWidth * 0.3,
+    width: screenWidth * 0.35,
     borderRadius: 10,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
@@ -81,13 +79,14 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     elevation: 3,
     margin: 3,
+    marginRight: 15,
   },
   imageContainer: {
     position: "relative",
   },
   cardImage: {
-    width: screenWidth * 0.3,
-    height: 120,
+    width: screenWidth * 0.35,
+    height: 130,
     marginBottom: 5,
     borderRadius: 8,
   },
@@ -130,7 +129,7 @@ const styles = StyleSheet.create({
     marginRight: 5,
     textAlign: "right",
   },
-  cardPrice: {
+cardPrice: {
     color: "#ff8000",
     fontSize: 15,
     fontWeight: "bold",
