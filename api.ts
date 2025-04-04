@@ -1,3 +1,5 @@
+//để sử dụng ví dụ' import { BASE_URL } from '../../api'; '
+
 export const BASE_URL = "http://localhost:3000/";
 export const Head_token = "Bearer "; // kết hợp Head_token + token để gửi về server
 
