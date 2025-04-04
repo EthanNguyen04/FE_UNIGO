@@ -46,7 +46,7 @@ export default function LoginScreen() {
     if (!emailValidation && !passwordValidation) {
       // Xử lý đăng nhập
       console.log("Đăng nhập thành công");
-      router.push("/(home)");
+      router.push("/home");
     }
   };
 
