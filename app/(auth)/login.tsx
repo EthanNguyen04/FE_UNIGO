@@ -6,9 +6,10 @@ import {
   TouchableOpacity,
   StyleSheet,
   Platform,
+  ActivityIndicator, // Thêm ActivityIndicator để hiển thị spinner loading
 } from "react-native";
 import { useRouter } from "expo-router";
-import { Ionicons } from "@expo/vector-icons"; // Icon mắt để ẩn/hiện mật khẩu
+import { Ionicons } from "@expo/vector-icons";
 import CustomText from "@/components/custom/CustomText";
 
 export default function LoginScreen() {
@@ -20,8 +21,9 @@ export default function LoginScreen() {
   const [password, setPassword] = useState("");
   const [emailError, setEmailError] = useState("");
   const [passwordError, setPasswordError] = useState("");
+  const [generalError, setGeneralError] = useState("");
+  const [loading, setLoading] = useState(false); // Thêm state loading
 
-  // Hàm kiểm tra email hợp lệ
   const validateEmail = (text: string) => {
     const emailRegex = /\S+@\S+\.\S+/;
     if (!text) return "Email không được để trống";
@@ -29,14 +31,13 @@ export default function LoginScreen() {
     return "";
   };
 
-  // Hàm kiểm tra password hợp lệ
   const validatePassword = (text: string) => {
     if (!text) return "Mật khẩu không được để trống";
     if (text.length < 6) return "Mật khẩu phải có ít nhất 6 ký tự";
     return "";
   };
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     const emailValidation = validateEmail(email);
     const passwordValidation = validatePassword(password);
 
@@ -44,9 +45,32 @@ export default function LoginScreen() {
     setPasswordError(passwordValidation);
 
     if (!emailValidation && !passwordValidation) {
-      // Xử lý đăng nhập
-      console.log("Đăng nhập thành công");
-      router.push("/(home)");
+      setLoading(true); // Bắt đầu loading khi gọi API
+      try {
+        const response = await fetch("http://192.168.31.165:3000/api/user/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password }),
+        });
+
+        const data = await response.json();
+        console.log("Login API response:", data);
+
+        if (response.ok && data.message === "OTP đã được gửi đến email.") {
+          // Gửi OTP thành công → Chuyển sang màn nhập OTP
+          const encodedEmail = encodeURIComponent(email);
+          const encodedPassword = encodeURIComponent(password);
+          router.push(`/input_otp_verification?email=${encodedEmail}&password=${encodedPassword}&type=login`);
+        } else {
+          // Nếu sai tài khoản hoặc mật khẩu
+          setPasswordError(data.message || "Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.");
+        }
+      } catch (error) {
+        console.error("Lỗi khi gọi API:", error);
+        setPasswordError("Đã xảy ra lỗi. Vui lòng thử lại sau.");
+      } finally {
+        setLoading(false); // Kết thúc loading
+      }
     }
   };
 
@@ -55,14 +79,12 @@ export default function LoginScreen() {
       <CustomText style={styles.title}>Chào mừng bạn</CustomText>
       <CustomText style={styles.subtitle}>Đăng nhập để tiếp tục</CustomText>
 
-      {/* Email Input */}
+      {/* Email */}
       <CustomText style={styles.label}>Email</CustomText>
       <TextInput
         style={[
           styles.input,
-          {
-            borderBottomColor: focusEmail ? "orange" : emailError ? "red" : "gray",
-          },
+          { borderBottomColor: focusEmail ? "orange" : emailError ? "red" : "gray" },
         ]}
         placeholder="Nhập email"
         placeholderTextColor="gray"
@@ -84,7 +106,7 @@ export default function LoginScreen() {
         </Text>
       ) : null}
 
-      {/* Password Input */}
+      {/* Mật khẩu */}
       <CustomText style={styles.label}>Mật khẩu</CustomText>
       <View style={[styles.passwordContainer, focusPassword && styles.inputFocused]}>
         <TextInput
@@ -116,17 +138,28 @@ export default function LoginScreen() {
         </Text>
       ) : null}
 
+      {/* Thông báo lỗi tổng quát */}
+      {generalError ? (
+        <Text style={styles.errorText}>
+          <Ionicons name="alert-circle" size={14} color="red" /> {generalError}
+        </Text>
+      ) : null}
+
       {/* Quên mật khẩu */}
       <TouchableOpacity style={styles.forgotPasswordContainer} onPress={() => router.push("/email_verify")}>
         <CustomText style={styles.forgotPassword}>Quên mật khẩu?</CustomText>
       </TouchableOpacity>
-{/* hoặc đổi router sang forgot_password */}
-      {/* Nút đăng nhập */}
-      <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
-        <CustomText style={styles.loginButtonText}>Đăng Nhập</CustomText>
+
+      {/* Đăng nhập */}
+      <TouchableOpacity style={styles.loginButton} onPress={handleLogin} disabled={loading}>
+        {loading ? (
+          <ActivityIndicator size="small" color="#ffffff" /> // Hiển thị spinner khi đang tải
+        ) : (
+          <CustomText style={styles.loginButtonText}>Đăng Nhập</CustomText>
+        )}
       </TouchableOpacity>
 
-      {/* Nền cam chứa "Bạn chưa có tài khoản?" */}
+      {/* Chân trang */}
       <View style={styles.footer}>
         <CustomText style={styles.footerText}>
           Bạn chưa có tài khoản?{" "}
@@ -139,7 +172,6 @@ export default function LoginScreen() {
   );
 }
 
-// 🌟 *CSS Styles*
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -148,20 +180,19 @@ const styles = StyleSheet.create({
     backgroundColor: "white",
   },
   title: {
-    fontSize: 26, // Dịch lên trên bằng cách tăng font
+    fontSize: 26,
     fontWeight: "bold",
-    marginBottom: 5, // Giảm khoảng cách với subtitle
-    
+    marginBottom: 5,
   },
   subtitle: {
     color: "gray",
-    marginBottom: 25, // Tăng khoảng cách với form nhập
+    marginBottom: 25,
   },
   label: {
     fontSize: 16,
     fontWeight: "bold",
-    marginBottom: 5,
-    marginTop: 10,
+    marginBottom: 0,
+    marginTop: 20,
     color: '#818181'
   },
   input: {
@@ -181,8 +212,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   eyeIcon: {
-    position: 'absolute',
-    right: 0
+    position: "absolute",
+    right: 0,
   },
   errorText: {
     color: "#EB0D0D",
@@ -202,10 +233,10 @@ const styles = StyleSheet.create({
   },
   loginButton: {
     backgroundColor: "#FF8000",
-    padding: 12, // Làm cho nút to hơn
+    padding: 12,
     borderRadius: 20,
     alignItems: "center",
-    marginTop: 10, // Giãn cách với input trên
+    marginTop: 10,
   },
   loginButtonText: {
     color: "white",

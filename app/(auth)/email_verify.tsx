@@ -12,8 +12,8 @@ export default function SendOTPScreen({ emailFromLogin }: SendOTPScreenProps) {
   const [email, setEmail] = useState(emailFromLogin || "");
 
   const handleSendOTP = () => {
-    console.log("Gửi OTP tới email:", email);
-    Alert.alert("OTP đã được gửi!", `Vui lòng kiểm tra email: ${email}`);
+    console.log("Gửi OTP tới email:", {email});
+    // Alert.alert("OTP đã được gửi!", `Vui lòng kiểm tra email: ${email}`);
     router.push("/input_otp_verification");
   };
 
