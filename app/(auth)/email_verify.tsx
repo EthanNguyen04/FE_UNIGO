@@ -2,19 +2,47 @@ import { useState } from "react";
 import { View, TextInput, TouchableOpacity, StyleSheet, Alert } from "react-native";
 import { useRouter } from "expo-router";
 import CustomText from "@/components/custom/CustomText";
+import axios from "axios";
+import { ActivityIndicator } from "react-native"; // Đảm bảo import ActivityIndicator
 
-type SendOTPScreenProps = {
+type SendEmailScreenProps = {
   emailFromLogin?: string;
 };
 
-export default function SendOTPScreen({ emailFromLogin }: SendOTPScreenProps) {
+export default function SendEmailScreen({ emailFromLogin }: SendEmailScreenProps) {
   const router = useRouter();
   const [email, setEmail] = useState(emailFromLogin || "");
+  const [loading, setLoading] = useState(false); // Đặt `useState` trong component
 
-  const handleSendOTP = () => {
-    console.log("Gửi OTP tới email:", {email});
-    // Alert.alert("OTP đã được gửi!", `Vui lòng kiểm tra email: ${email}`);
-    router.push("/input_otp_verification");
+  const handleSendOTP = async () => {
+    if (!email) {
+      Alert.alert("Lỗi", "Vui lòng nhập email.");
+      return;
+    }
+
+    setLoading(true); // 👉 Bắt đầu loading
+
+    try {
+      const response = await axios.post("http://192.168.31.165:3000/api/user/send_otprs", {
+        email,
+      });
+
+      if (response.status === 200) {
+        Alert.alert("Thành công", "OTP đã được gửi đến email của bạn.");
+        router.push({
+          pathname: "/input_otp_verification",
+          params: { email: email, type: "send_otprs" },
+        });
+      } else {
+        Alert.alert("Lỗi", response.data.message || "Không thể gửi OTP.");
+      }
+    } catch (error) {
+      console.error("Lỗi khi gửi OTP:", error);
+      const errorMessage = error.response?.data?.message || "Email không tồn tại trong hệ thống.";
+      Alert.alert("Lỗi", errorMessage);
+    } finally {
+      setLoading(false); // 👉 Dừng loading
+    }
   };
 
   return (
@@ -28,12 +56,21 @@ export default function SendOTPScreen({ emailFromLogin }: SendOTPScreenProps) {
         placeholder="Nhập email"
         placeholderTextColor="gray"
         keyboardType="email-address"
+        autoCapitalize="none"
         value={email}
         onChangeText={(text) => setEmail(text)}
       />
 
-      <TouchableOpacity style={styles.sendOtpButton} onPress={handleSendOTP}>
-        <CustomText style={styles.sendOtpButtonText}>Gửi OTP</CustomText>
+      <TouchableOpacity
+        style={[styles.sendOtpButton, loading && { opacity: 0.6 }]}
+        onPress={handleSendOTP}
+        disabled={loading}
+      >
+        {loading ? (
+          <ActivityIndicator size="small" color="#fff" />
+        ) : (
+          <CustomText style={styles.sendOtpButtonText}>Gửi OTP</CustomText>
+        )}
       </TouchableOpacity>
     </View>
   );
@@ -42,7 +79,7 @@ export default function SendOTPScreen({ emailFromLogin }: SendOTPScreenProps) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: "center",
+    paddingTop: 90,
     paddingHorizontal: 20,
     backgroundColor: "white",
   },

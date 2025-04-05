@@ -3,7 +3,8 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from "reac
 import { useRouter } from "expo-router";
 import CustomText from "@/components/custom/CustomText";
 import { useLocalSearchParams } from "expo-router";
-import axios from "axios"; // For API call
+import axios from "axios"; 
+import * as SecureStore from "expo-secure-store";
 
 export default function OTPVerificationScreen() {
   const router = useRouter();
@@ -12,7 +13,7 @@ export default function OTPVerificationScreen() {
   const [countdown, setCountdown] = useState(60);
   const inputs = useRef<Array<TextInput | null>>([null, null, null, null]);
   const { email, password, type } = useLocalSearchParams();
-
+  
   const handleVerifyOTP = async () => {
     const enteredOtp = otp.join("");
 
@@ -48,6 +49,25 @@ export default function OTPVerificationScreen() {
         } else {
           Alert.alert("Lỗi", "OTP không đúng hoặc đăng nhập thất bại.");
         }
+      } else if (type === "send_otprs") {
+        console.log("Email received:", email);
+        const response = await axios.post("http://192.168.31.165:3000/api/user/send_otprs", {
+          email: email,
+          otp: enteredOtp,
+        });
+
+        if (response.status === 200 && response.data.token) {
+          await SecureStore.setItemAsync("reset_token", response.data.token);
+          Alert.alert("Thành công", "Xác thực OTP thành công!");
+          console.log('Email ở input otp', email);
+          router.push({
+            pathname: "/forgot_password",
+            params: { email: email},
+          });
+          
+        } else {
+          Alert.alert("Lỗi", "OTP không đúng hoặc xác thực thất bại.");
+        }
       }
     } catch (error) {
       console.error("Lỗi xác thực OTP:", error);
@@ -65,16 +85,29 @@ export default function OTPVerificationScreen() {
   const handleResendOTP = async () => {
     if (countdown === 0) {
       try {
-        const response = await axios.post("http://192.168.31.165:3000/api/user/login", {
-          email,
-          password,
-        });
-
-        if (response.status === 200 && response.data.message === "OTP đã được gửi đến email.") {
-          Alert.alert("", "Đã gửi lại OTP mới.");
-          setCountdown(60);
+        if (type === "send_otprs") {
+          const response = await axios.post("http://192.168.31.165:3000/api/user/send_otprs", {
+            email,
+          });
+  
+          if (response.status === 200) {
+            Alert.alert("", "Đã gửi lại OTP mới.");
+            setCountdown(60);
+          } else {
+            Alert.alert("Lỗi", response.data.message || "Không thể gửi lại OTP.");
+          }
         } else {
-          Alert.alert("Lỗi", response.data.message || "Không thể gửi lại OTP.");
+          const response = await axios.post("http://192.168.31.165:3000/api/user/login", {
+            email,
+            password,
+          }); // đăng nhập đăng ký dùng chung api
+  
+          if (response.status === 200 && response.data.message === "OTP đã được gửi đến email.") {
+            Alert.alert("", "Đã gửi lại OTP mới.");
+            setCountdown(60);
+          } else {
+            Alert.alert("Lỗi", response.data.message || "Không thể gửi lại OTP.");
+          }
         }
       } catch (error) {
         console.error("Lỗi gửi lại OTP:", error);
@@ -82,7 +115,7 @@ export default function OTPVerificationScreen() {
       }
     }
   };
-
+  
   const handleOTPChange = (text: string, index: number) => {
     if (/^\d*$/.test(text)) {
       const newOtp = [...otp];
@@ -146,7 +179,7 @@ export default function OTPVerificationScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: "center",
+    paddingTop: 90,
     paddingHorizontal: 20,
     backgroundColor: "white",
   },

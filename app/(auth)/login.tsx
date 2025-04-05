@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -6,11 +6,14 @@ import {
   TouchableOpacity,
   StyleSheet,
   Platform,
-  ActivityIndicator, // Thêm ActivityIndicator để hiển thị spinner loading
+  ActivityIndicator, 
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import CustomText from "@/components/custom/CustomText";
+import { useFocusEffect } from "@react-navigation/native"; 
+import React from "react";
+
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -24,6 +27,16 @@ export default function LoginScreen() {
   const [generalError, setGeneralError] = useState("");
   const [loading, setLoading] = useState(false); // Thêm state loading
 
+  useFocusEffect(
+    React.useCallback(() => {
+      // Reset lại email, password và các lỗi khi quay lại màn hình
+      setEmail('');
+      setPassword('');
+      setEmailError('');
+      setPasswordError('');
+      setGeneralError('');
+    }, [])
+  );
   const validateEmail = (text: string) => {
     const emailRegex = /\S+@\S+\.\S+/;
     if (!text) return "Email không được để trống";
@@ -45,7 +58,6 @@ export default function LoginScreen() {
     setPasswordError(passwordValidation);
 
     if (!emailValidation && !passwordValidation) {
-
       setLoading(true); // Bắt đầu loading khi gọi API
       try {
         const response = await fetch("http://192.168.31.165:3000/api/user/login", {
@@ -70,18 +82,19 @@ export default function LoginScreen() {
         console.error("Lỗi khi gọi API:", error);
         setPasswordError("Đã xảy ra lỗi. Vui lòng thử lại sau.");
       } finally {
-        setLoading(false); // Kết thúc loading
+        setLoading(false);
       }
-
-<<<<<<< HEAD
-=======
-      // Xử lý đăng nhập
-      console.log("Đăng nhập thành công");
-      router.push("/home");
-      
->>>>>>> a7ccfa7224ae5c39bcf4523b551adf88cc03e7a5
     }
   };
+
+  // Reset validation errors when screen is focused again
+  useFocusEffect(
+    React.useCallback(() => {
+      setEmailError("");
+      setPasswordError("");
+      setGeneralError("");
+    }, [])
+  );
 
   return (
     <View style={styles.container}>
