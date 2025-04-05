@@ -4,12 +4,6 @@ import Feather from "react-native-vector-icons/Feather";
 import { useRouter } from "expo-router"; 
 import { useEffect } from "react";
 import AsyncStorage from '@react-native-async-storage/async-storage';  // Import AsyncStorage
-import { LogBox } from 'react-native';
-
-LogBox.ignoreLogs(['Warning:']); // Chỉ tắt cảnh báo
-
-// Hoặc cách này để tắt mọi cảnh báo nhưng vẫn giữ console.log
-console.warn = () => {}; // Ghi đè hàm console.warn để tắt mọi cảnh báo
 
 export default function IntroScreen() {
   const router = useRouter(); // Sử dụng useRouter để điều hướng

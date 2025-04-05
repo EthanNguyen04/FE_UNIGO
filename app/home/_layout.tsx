@@ -28,7 +28,7 @@ export default function TabLayout() {
       }}>
 
       <Tabs.Screen
-        name="home"
+        name="index"
         options={{
           tabBarIcon: ({ focused }) => (
             <TabIcon source={require("@/assets/images/home_ic.png")} focused={focused} />
