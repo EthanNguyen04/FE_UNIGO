@@ -40,7 +40,7 @@ const ItemProductSale: React.FC<ItemProductSale> = ({ product }) => {
       </View>
 
       <Text
-        style={[styles.cardName, { padding: 3, width: screenWidth * 0.3 }]}
+        style={[styles.cardName, { padding: 5, width: screenWidth * 0.3 }]}
         numberOfLines={2}
         ellipsizeMode="tail"
       >
@@ -49,21 +49,19 @@ const ItemProductSale: React.FC<ItemProductSale> = ({ product }) => {
 
       {/* View chứa giá cũ và giá mới, căn chúng xuống dưới */}
       <View style={styles.priceContainer}>
-        <View style={styles.oldPriceContainer}>
-          <Text style={styles.oldPrice}>
-            {/* Định dạng và thêm "VND" */}
-            {product.oldPrice.toLocaleString("vi-VN", {
-              style: "currency",
-              currency: "VND",
-            })}
-          </Text>
-        </View>
+        <Text style={styles.oldPrice}>
+          {/* Định dạng và thêm "VND" */}
+          {product.oldPrice.toLocaleString("vi-VN", {
+            style: "currency",
+            currency: "VND",
+          })}
+        </Text>
         <Text style={styles.cardPrice}>
           {/* Định dạng và thêm "VND" */}
           {product.newPrice.toLocaleString("vi-VN", {
-              style: "currency",
-              currency: "VND",
-            })}
+            style: "currency",
+            currency: "VND",
+          })}
         </Text>
       </View>
     </View>
@@ -116,24 +114,24 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "flex-end",
     paddingLeft: 5,
+    marginBottom: 10
   },
   oldPriceContainer: {
     flexDirection: "row-reverse",
-    width: screenWidth * 0.3,
     justifyContent: "space-between",
-    paddingRight: 10,
   },
   oldPrice: {
     color: "#888",
     fontSize: 10,
     textDecorationLine: "line-through",
     marginRight: 5,
-    textAlign: "right",
   },
   cardPrice: {
     color: "#ff8000",
     fontSize: 15,
     fontWeight: "bold",
+    textAlign: 'right',
+    marginRight: 10
   },
 });
 
