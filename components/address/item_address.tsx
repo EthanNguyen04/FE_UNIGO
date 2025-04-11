@@ -110,10 +110,10 @@ const styles = StyleSheet.create({
   },
   name: {
     fontWeight: 'bold',
-    color: '#fff',
+    color: 'black',
   },
   address: {
-    color: '#fff',
+    color: 'black',
     marginTop: 4,
   },
   deleteButton: {
