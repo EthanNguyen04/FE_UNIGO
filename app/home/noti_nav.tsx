@@ -41,9 +41,18 @@ export default function NotiScreen() {
 
       {/* Link đến các màn hình khác */}
       <Button title="Chuyển đến Sale" onPress={() => router.push("/flash_sale_screen")} />
+
+
+      <Button title="Chuyển đến product" onPress={() => router.push("/product_screen")}/>
+
       <Button title="Chuyển đến product" onPress={() => router.push("/product_screen")} />
       <Button title="Chuyển đến cart" onPress={() => router.push("/cart_screen")} />
       <Button title="Chuyển đến order" onPress={() => router.push("/order_screen")} />
+
+      <Button title="Chuyển đến product" onPress={() => router.push("/product_screen")} />
+      <Button title="Chuyển đến cart" onPress={() => router.push("/cart_screen")} />
+      <Button title="Chuyển đến order" onPress={() => router.push("/order_screen")} />
+      <Button title="Chuyển đến address" onPress={() => router.push("/Address_Screen")} />
     </View>
   );
 }
