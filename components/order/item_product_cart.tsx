@@ -1,44 +1,67 @@
-import React, { FC } from 'react';
+import React, { FC, useState } from 'react';
 import { StyleSheet, View, Image, Text, Touchable, TouchableOpacity } from 'react-native';
 import { Colors } from '@/constants/Colors';
 import { Ionicons } from '@expo/vector-icons';
 import QuantityPicker from './choose_quantity';
+import BottomSheetProductOptions from './bottom_sheet_product';
 export interface Cart {
+    id: number,
     image: string,
     price: number,
     name: string,
     type: String,
     color: String,
-    onPress?: () => void,
+    quantity: number,
+    selectedColor?: string;
+    selectedSize?: string;
+    colors: string[],
+    sizes: string[],
+    onRemove?: () => void,
+    onChangeQuantity?: (quantity: number) => void
     selected?: boolean;
 }
 
 const ItemProductCart: FC<Cart> = (props) => {
+    const [visible, setVisible] = useState(false);
+
     return (
-        <TouchableOpacity onPress={props.onPress} style={styles.container}>
+        <View style={styles.container}>
             <Image source={{ uri: props.image }} style={styles.image} />
             <View style={styles.containerInfo}>
                 <View style={styles.containerName}>
                     <Text style={styles.textLabel}>{props.name}</Text>
-                    <View style={[styles.radio, props.selected && styles.selected]} />
+                    <TouchableOpacity onPress={props.onRemove}><Ionicons name="close" size={20} color="black" /></TouchableOpacity>
                 </View>
-                <View style={styles.containerType}>
-                    <Text style={styles.textType}>
-                        {props.color}, {props.type}
-                    </Text>
-                    <Ionicons name="arrow-down" size={12} color="black" />
-                </View>
+                <TouchableOpacity onPress={() => { setVisible(!visible) }}>
+                    <View style={styles.containerType}>
+                        <Text style={styles.textType}>
+                            {props.color}, {props.type}
+                        </Text>
+                        <Ionicons name="arrow-down" size={12} color="black" />
+                    </View>
+                </TouchableOpacity>
+
                 <View style={styles.containerQuantity}>
                     <Text style={styles.textPrice}>
                         {props.price.toLocaleString('vi-VN')}đ
                     </Text>
                     <QuantityPicker
                         initialValue={1}
-                        onChange={(value) => console.log('New quantity:', value)}
+                        onChange={(value) => props.onChangeQuantity?.(value)}
                     />
                 </View>
             </View>
-        </TouchableOpacity>
+            <BottomSheetProductOptions
+                visible={visible}
+                onClose={() => setVisible(false)}
+                colors={props.colors}
+                sizes={props.sizes}
+                defaultColor={props.selectedColor}
+                defaultSize={props.selectedSize}
+                onSelectColor={(color) => console.log('Chọn màu:', color)}
+                onSelectSize={(size) => console.log('Chọn size:', size)}
+            />
+        </View>
     );
 }
 
@@ -47,7 +70,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         borderRadius: 12,
         padding: 8,
-        marginHorizontal:12,
+        marginHorizontal: 12,
         backgroundColor: Colors.white,
         shadowColor: Colors.black,
         shadowOffset: { width: 0, height: 4 },
