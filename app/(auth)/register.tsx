@@ -6,20 +6,22 @@ import {
   TouchableOpacity,
   StyleSheet,
   Platform,
+  ActivityIndicator, // Thêm ActivityIndicator để hiển thị spinner loading
 } from "react-native";
 import { useRouter } from "expo-router";
-import { Ionicons } from "@expo/vector-icons"; // Icon mắt để ẩn/hiện mật khẩu
+import { Ionicons } from "@expo/vector-icons"; 
 import CustomText from "@/components/custom/CustomText";
+import axios from "axios"; // For API call
 
 export default function RegisterScreen() {
   const router = useRouter();
   const [passwordVisible, setPasswordVisible] = useState(false);
-
+  
   const [focusName, setFocusName] = useState(false);
   const [focusEmail, setFocusEmail] = useState(false);
   const [focusPassword, setFocusPassword] = useState(false);
   const [focusRePassword, setFocusRePassword] = useState(false);
-
+  
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -30,38 +32,56 @@ export default function RegisterScreen() {
   const [passwordError, setPasswordError] = useState("");
   const [rePasswordError, setRePasswordError] = useState("");
 
-  // Hàm kiểm tra email hợp lệ
+  const [loading, setLoading] = useState(false); 
+  // Validate
   const validateEmail = (text: string) => {
-    const emailRegex = /\S+@\S+\.\S+/;
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  
     if (!text) return "Email không được để trống";
     if (!emailRegex.test(text)) return "Email không hợp lệ";
-    return "";
+  
+    return ""; // Nếu không có lỗi, trả về chuỗi rỗng
   };
+  
 
-  // Hàm kiểm tra password hợp lệ
   const validatePassword = (text: string) => {
     if (!text) return "Mật khẩu không được để trống";
     if (text.length < 6) return "Mật khẩu phải có ít nhất 6 ký tự";
     return "";
   };
 
-  // Hàm kiểm tra xác nhận mật khẩu hợp lệ
+  // const validatePassword = (text: string) => {
+  //   if (!text) return "Mật khẩu không được để trống";
+  //   if (text.length < 6) return "Mật khẩu phải có ít nhất 6 ký tự";
+    
+  //   if (!/[A-Z]/.test(text)) return "Mật khẩu phải có ít nhất một chữ cái viết hoa";
+  
+  //   if (!/[a-z]/.test(text)) return "Mật khẩu phải có ít nhất một chữ cái viết thường";
+  
+  //   if (!/\d/.test(text)) return "Mật khẩu phải có ít nhất một chữ số";
+  
+  //   if (!/[!@#$%^&*(),.?":{}|<>]/.test(text)) return "Mật khẩu phải có ít nhất một ký tự đặc biệt";
+  
+  //   if (/\s/.test(text)) return "Mật khẩu không được chứa khoảng trắng";
+  
+  //   return ""; // Nếu tất cả các điều kiện trên không bị lỗi, trả về chuỗi rỗng (không có lỗi)
+  // };
+  
+
   const validateRePassword = (text: string) => {
     if (!text) return "Vui lòng nhập lại mật khẩu";
     if (text !== password) return "Mật khẩu không khớp";
     return "";
   };
 
-  // Hàm kiểm tra name hợp lệ
   const validateName = (text: string) => {
     if (!text) return "Tên không được để trống";
     if (text.length < 3) return "Tên phải có ít nhất 3 ký tự";
     return "";
   };
 
-
-
-  const handleRegister = () => {
+  // Handle registration
+  const handleRegister = async () => {
     const emailValidation = validateEmail(email);
     const passwordValidation = validatePassword(password);
     const rePasswordValidation = validateRePassword(rePassword);
@@ -70,18 +90,41 @@ export default function RegisterScreen() {
     setPasswordError(passwordValidation);
     setRePasswordError(rePasswordValidation);
 
+    // Nếu không có lỗi trong các trường dữ liệu
     if (!emailValidation && !passwordValidation && !rePasswordValidation) {
-      console.log("Đăng ký thành công");
-      router.push("/");
+      setLoading(true); // Bắt đầu loading khi gọi API
+
+      try {
+        const response = await axios.post("http://192.168.31.165:3000/api/user/register", {
+          email,
+          password,
+          full_name: name,
+        });
+
+        if (response.status === 201) {
+          console.log("Đăng ký thành công! OTP đã được gửi đến email.");
+
+          // Truyền cả email và password qua URL
+          const encodedEmail = encodeURIComponent(email);
+          const encodedPassword = encodeURIComponent(password);
+          router.push(`/input_otp_verification?email=${encodedEmail}&password=${encodedPassword}&type=register`);
+        }
+      } catch (error) {
+        if (error.response && error.response.data.message) {
+          // Xử lý lỗi nếu có, ví dụ email đã tồn tại
+          setEmailError(error.response.data.message);
+        } else {
+          console.error("Lỗi khi đăng ký:", error);
+        }
+      } finally {
+        setLoading(false); // Kết thúc loading
+      }
     }
   };
 
   return (
     <View style={styles.container}>
       <CustomText style={styles.title}>Đăng ký</CustomText>
-      <CustomText>   </CustomText>
-      {/* <CustomText style={styles.subtitle}>Đăng nhập để tiếp tục</CustomText> */}
-
 
       {/* Name Input */}
       <CustomText style={styles.label}>Name</CustomText>
@@ -105,11 +148,11 @@ export default function RegisterScreen() {
           setNameError(validateName(name));
         }}
       />
-      {nameError ? (
+      {nameError && (
         <Text style={styles.errorText}>
           <Ionicons name="alert-circle" size={14} color="red" /> {nameError}
         </Text>
-      ) : null}
+      )}
 
       {/* Email Input */}
       <CustomText style={styles.label}>Email</CustomText>
@@ -134,11 +177,11 @@ export default function RegisterScreen() {
           setEmailError(validateEmail(email));
         }}
       />
-      {emailError ? (
+      {emailError && (
         <Text style={styles.errorText}>
           <Ionicons name="alert-circle" size={14} color="red" /> {emailError}
         </Text>
-      ) : null}
+      )}
 
       {/* Password Input */}
       <CustomText style={styles.label}>Mật khẩu</CustomText>
@@ -146,7 +189,10 @@ export default function RegisterScreen() {
         <TextInput
           style={[
             styles.input,
-            { flex: 1, borderBottomColor: focusPassword ? "orange" : passwordError ? "red" : "gray" },
+            {
+              flex: 1,
+              borderBottomColor: focusPassword ? "orange" : passwordError ? "red" : "gray",
+            },
           ]}
           placeholder="Nhập mật khẩu"
           placeholderTextColor="gray"
@@ -166,11 +212,11 @@ export default function RegisterScreen() {
           <Ionicons name={passwordVisible ? "eye-off" : "eye"} size={20} color="gray" />
         </TouchableOpacity>
       </View>
-      {passwordError ? (
+      {passwordError && (
         <Text style={styles.errorText}>
           <Ionicons name="alert-circle" size={14} color="red" /> {passwordError}
         </Text>
-      ) : null}
+      )}
 
       {/* RePassword Input */}
       <CustomText style={styles.label}>Nhập lại mật khẩu</CustomText>
@@ -191,25 +237,29 @@ export default function RegisterScreen() {
           }}
           onBlur={() => {
             setFocusRePassword(false);
-            setRePasswordError(validateRePassword(password));
+            setRePasswordError(validateRePassword(rePassword));
           }}
         />
         <TouchableOpacity onPress={() => setPasswordVisible(!passwordVisible)} style={styles.eyeIcon}>
           <Ionicons name={passwordVisible ? "eye-off" : "eye"} size={20} color="gray" />
         </TouchableOpacity>
       </View>
-      {rePasswordError ? (
+      {rePasswordError && (
         <Text style={styles.errorText}>
           <Ionicons name="alert-circle" size={14} color="red" /> {rePasswordError}
         </Text>
-      ) : null}
- 
-      {/* Nút đăng nhập */}
-      <TouchableOpacity style={styles.loginButton} onPress={handleRegister}>
-        <CustomText style={styles.loginButtonText}>Đăng Ký</CustomText>
+      )}
+
+      {/* Register Button */}
+      <TouchableOpacity style={styles.loginButton} onPress={handleRegister} disabled={loading}>
+        {loading ? (
+          <ActivityIndicator size="small" color="#ffffff" /> // Hiển thị spinner khi đang tải
+        ) : (
+          <CustomText style={styles.loginButtonText}>Đăng Ký</CustomText>
+        )}
       </TouchableOpacity>
 
-      {/* Nền cam chứa "Bạn chưa có tài khoản?" */}
+      {/* Footer */}
       <View style={styles.footer}>
         <CustomText style={styles.footerText}>
           Bạn đã có tài khoản?{" "}
@@ -222,7 +272,6 @@ export default function RegisterScreen() {
   );
 }
 
-// 🌟 *CSS Styles*
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -231,19 +280,15 @@ const styles = StyleSheet.create({
     backgroundColor: "white",
   },
   title: {
-    fontSize: 26, // Dịch lên trên bằng cách tăng font
+    fontSize: 26, 
     fontWeight: "bold",
-    marginBottom: 5, // Giảm khoảng cách với subtitle
-  },
-  subtitle: {
-    color: "gray",
-    marginBottom: 25, // Tăng khoảng cách với form nhập
+    marginBottom: 5, 
   },
   label: {
     fontSize: 16,
     fontWeight: "bold",
-    marginBottom: 5,
-    marginTop: 10,
+    marginBottom: 0,
+    marginTop: 20,
     color: '#818181'
   },
   input: {
@@ -273,10 +318,10 @@ const styles = StyleSheet.create({
   },
   loginButton: {
     backgroundColor: "#FF8000",
-    padding: 12, // Làm cho nút to hơn
+    padding: 12,
     borderRadius: 20,
     alignItems: "center",
-    marginTop: 50, // Giãn cách với input trên
+    marginTop: 50, 
   },
   loginButtonText: {
     color: "white",
@@ -300,4 +345,4 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     textDecorationLine: "underline",
   },
-});
+}); 

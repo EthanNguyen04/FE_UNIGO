@@ -1,13 +1,79 @@
 import { useState, useRef, useEffect } from "react";
-import { View, TextInput, TouchableOpacity, StyleSheet, Alert } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from "react-native";
 import { useRouter } from "expo-router";
 import CustomText from "@/components/custom/CustomText";
+import { useLocalSearchParams } from "expo-router";
+import axios from "axios"; 
+import * as SecureStore from "expo-secure-store";
 
 export default function OTPVerificationScreen() {
   const router = useRouter();
   const [otp, setOtp] = useState(["", "", "", ""]);
+  const [serverOTP, setServerOTP] = useState("");
   const [countdown, setCountdown] = useState(60);
   const inputs = useRef<Array<TextInput | null>>([null, null, null, null]);
+  const { email, password, type } = useLocalSearchParams();
+  
+  const handleVerifyOTP = async () => {
+    const enteredOtp = otp.join("");
+
+    if (!enteredOtp) {
+      Alert.alert("Lỗi", "Chưa nhập OTP");
+      return;
+    }
+
+    try {
+      if (type == "register") {
+        const response = await axios.post("http://192.168.31.165:3000/api/user/login", {
+          email,
+          password,
+          otp: enteredOtp,
+        });
+
+        if (response.status === 200) {
+          Alert.alert("", "Đăng nhập thành công!");
+          router.push("/home");
+        } else {
+          Alert.alert("Lỗi", "OTP không đúng hoặc đăng nhập thất bại.");
+        }
+      } else if (type == "login") {
+        const response = await axios.post("http://192.168.31.165:3000/api/user/login", {
+          email,
+          password,
+          otp: enteredOtp,
+        });
+
+        if (response.status === 200) {
+          // Alert.alert("Thành công", "Đăng nhập thành công!");
+          router.push("/home");
+        } else {
+          Alert.alert("Lỗi", "OTP không đúng hoặc đăng nhập thất bại.");
+        }
+      } else if (type === "send_otprs") {
+        console.log("Email received:", email);
+        const response = await axios.post("http://192.168.31.165:3000/api/user/send_otprs", {
+          email: email,
+          otp: enteredOtp,
+        });
+
+        if (response.status === 200 && response.data.token) {
+          await SecureStore.setItemAsync("reset_token", response.data.token);
+          Alert.alert("Thành công", "Xác thực OTP thành công!");
+          console.log('Email ở input otp', email);
+          router.push({
+            pathname: "/forgot_password",
+            params: { email: email},
+          });
+          
+        } else {
+          Alert.alert("Lỗi", "OTP không đúng hoặc xác thực thất bại.");
+        }
+      }
+    } catch (error) {
+      console.error("Lỗi xác thực OTP:", error);
+      Alert.alert("Lỗi", error.response?.data?.message || "Xác thực OTP thất bại.");
+    }
+  };
 
   useEffect(() => {
     if (countdown > 0) {
@@ -16,24 +82,40 @@ export default function OTPVerificationScreen() {
     }
   }, [countdown]);
 
-  const handleResendOTP = () => {
+  const handleResendOTP = async () => {
     if (countdown === 0) {
-        Alert.alert("Đã gửi OTP mới");
-      setCountdown(60);
+      try {
+        if (type === "send_otprs") {
+          const response = await axios.post("http://192.168.31.165:3000/api/user/send_otprs", {
+            email,
+          });
+  
+          if (response.status === 200) {
+            Alert.alert("", "Đã gửi lại OTP mới.");
+            setCountdown(60);
+          } else {
+            Alert.alert("Lỗi", response.data.message || "Không thể gửi lại OTP.");
+          }
+        } else {
+          const response = await axios.post("http://192.168.31.165:3000/api/user/login", {
+            email,
+            password,
+          }); // đăng nhập đăng ký dùng chung api
+  
+          if (response.status === 200 && response.data.message === "OTP đã được gửi đến email.") {
+            Alert.alert("", "Đã gửi lại OTP mới.");
+            setCountdown(60);
+          } else {
+            Alert.alert("Lỗi", response.data.message || "Không thể gửi lại OTP.");
+          }
+        }
+      } catch (error) {
+        console.error("Lỗi gửi lại OTP:", error);
+        Alert.alert("Lỗi", "Gửi lại OTP thất bại.");
+      }
     }
   };
-
-  const handleVerifyOTP = () => {
-    const enteredOtp = otp.join("");
-    if (!enteredOtp) {
-      Alert.alert("Lỗi", "Chưa nhập OTP");
-    } else if (enteredOtp === "1234") {
-      router.push("/forgot_password");
-    } else {
-      Alert.alert("Lỗi", "Mã OTP không đúng, vui lòng thử lại.");
-    }
-  };
-
+  
   const handleOTPChange = (text: string, index: number) => {
     if (/^\d*$/.test(text)) {
       const newOtp = [...otp];
@@ -52,19 +134,17 @@ export default function OTPVerificationScreen() {
     }
   };
 
-  const isOtpComplete = otp.every((digit) => digit !== "");
-
   return (
     <View style={styles.container}>
       <CustomText style={styles.title}>Xác Thực OTP</CustomText>
+      <CustomText style={styles.label}>OTP đã được gửi về email {email}</CustomText>
       <CustomText style={styles.subtitle}>Nhập mã OTP gồm 4 chữ số</CustomText>
-      <CustomText>  </CustomText>
       <View style={styles.otpContainer}>
         {[0, 1, 2, 3].map((index) => (
           <TextInput
             key={index}
             ref={(ref) => (inputs.current[index] = ref)}
-            style={[styles.otpCircle, isOtpComplete ? styles.otpComplete : otp[index] ? styles.otpActive : styles.otpInactive]}
+            style={[styles.otpCircle, otp[index] ? styles.otpActive : styles.otpInactive]}
             value={otp[index]}
             onChangeText={(text) => handleOTPChange(text, index)}
             onKeyPress={({ nativeEvent }) => {
@@ -84,12 +164,13 @@ export default function OTPVerificationScreen() {
       </TouchableOpacity>
 
       <View style={styles.resendContainer}>
-        <CustomText style={styles.resendText}>Gửi lại OTP sau: {countdown}s </CustomText>
-        <TouchableOpacity onPress={handleResendOTP} disabled={countdown > 0}>
-          <CustomText style={[styles.resendButton, countdown > 0 ? styles.resendDisabled : styles.resendEnabled]}>
-            Gửi lại
-          </CustomText>
-        </TouchableOpacity>
+        {countdown > 0 ? (
+          <Text style={styles.countdownText}>Gửi lại OTP sau: {countdown}s</Text>
+        ) : (
+          <TouchableOpacity onPress={handleResendOTP}>
+            <Text style={[styles.resendText, styles.resendEnabled]}>Gửi lại</Text>
+          </TouchableOpacity>
+        )}
       </View>
     </View>
   );
@@ -98,7 +179,7 @@ export default function OTPVerificationScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: "center",
+    paddingTop: 90,
     paddingHorizontal: 20,
     backgroundColor: "white",
   },
@@ -106,6 +187,12 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: "bold",
     marginBottom: 10,
+  },
+  label: {
+    fontWeight: "bold",
+    marginBottom: 5,
+    marginTop: 10,
+    color: "#818181",
   },
   subtitle: {
     color: "gray",
@@ -133,9 +220,6 @@ const styles = StyleSheet.create({
   otpActive: {
     borderColor: "#FF8000",
   },
-  otpComplete: {
-    borderColor: "#54B435",
-  },
   verifyButton: {
     backgroundColor: "#FF8000",
     padding: 10,
@@ -157,14 +241,8 @@ const styles = StyleSheet.create({
   resendText: {
     color: "gray",
   },
-  resendButton: {
-    marginLeft: 5,
-    fontWeight: "bold",
-  },
-  resendDisabled: {
-    color: "gray",
-  },
   resendEnabled: {
     color: "#FF8000",
+    fontWeight: "bold",
   },
 });
