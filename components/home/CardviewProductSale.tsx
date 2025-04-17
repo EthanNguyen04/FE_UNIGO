@@ -7,36 +7,40 @@ import {
   ImageSourcePropType,
   ImageBackground,
   Dimensions,
-  TouchableOpacity, // <- THÊM DÒNG NÀY
 } from "react-native";
+import { Im_URL } from "../../api"; // Import BASE_URL
 
-const screenWidth = Dimensions.get('window').width;
+// Lấy chiều rộng màn hình
+const screenWidth = Dimensions.get("window").width;
 
 interface Product {
   id: string;
   name: string;
-  oldPrice: number;
-  newPrice: number;
-  discount: string;
+  original_price: number;
+  discount_price: number;
+  discount: number;
   image: ImageSourcePropType;
 }
 
 interface CardviewProductSaleProps {
   product: Product;
-  onPress?: () => void; // <- THÊM PROPS onPress
 }
 
-const CardviewProductSale: React.FC<CardviewProductSaleProps> = ({ product, onPress }) => {
+const CardviewProductSale: React.FC<CardviewProductSaleProps> = ({ product }) => {
+  // Giả sử product.image được truyền dưới dạng { uri: item.link }
+  // Ta nối BASE_URL với uri của product.image
+  const imageSource = { uri: Im_URL + (product.image as { uri: string }).uri };
+
   return (
-    <TouchableOpacity style={styles.card} onPress={onPress}>
+    <View style={styles.card}>
       <View style={styles.imageContainer}>
-        <Image source={product.image} style={styles.cardImage} />
+        <Image source={imageSource} style={styles.cardImage} />
         <ImageBackground
           source={require("../../assets/images/bg_sale_img.png")}
           style={styles.discountBadge}
           resizeMode="cover"
         >
-          <Text style={styles.discountText}>-{product.discount}</Text>
+          <Text style={styles.discountText}>-{product.discount}%</Text>
         </ImageBackground>
       </View>
 
@@ -51,27 +55,27 @@ const CardviewProductSale: React.FC<CardviewProductSaleProps> = ({ product, onPr
       <View style={styles.priceContainer}>
         <View style={styles.oldPriceContainer}>
           <Text style={styles.oldPrice}>
-            {product.oldPrice.toLocaleString("vi-VN", {
+            {product.original_price.toLocaleString("vi-VN", {
               style: "currency",
               currency: "VND",
             })}
           </Text>
         </View>
         <Text style={styles.cardPrice}>
-          {product.newPrice.toLocaleString("vi-VN", {
+          {product.discount_price.toLocaleString("vi-VN", {
             style: "currency",
             currency: "VND",
           })}
         </Text>
       </View>
-    </TouchableOpacity>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   card: {
     backgroundColor: "#fff",
-    width: screenWidth * 0.35,
+    width: screenWidth * 0.3,
     borderRadius: 10,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
@@ -79,14 +83,13 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     elevation: 3,
     margin: 3,
-    marginRight: 15,
   },
   imageContainer: {
     position: "relative",
   },
   cardImage: {
-    width: screenWidth * 0.35,
-    height: 130,
+    width: screenWidth * 0.3,
+    height: 120,
     marginBottom: 5,
     borderRadius: 8,
   },
@@ -105,7 +108,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   cardName: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: "500",
     alignSelf: "flex-start",
     flexWrap: "wrap",
@@ -129,7 +132,7 @@ const styles = StyleSheet.create({
     marginRight: 5,
     textAlign: "right",
   },
-cardPrice: {
+  cardPrice: {
     color: "#ff8000",
     fontSize: 15,
     fontWeight: "bold",

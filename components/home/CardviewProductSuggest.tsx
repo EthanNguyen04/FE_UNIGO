@@ -8,6 +8,7 @@ import {
   ImageSourcePropType,
   Dimensions,
 } from "react-native";
+import { Im_URL } from "../../api"; // Import BASE_URL
 
 // Lấy chiều rộng màn hình
 const screenWidth = Dimensions.get("window").width;
@@ -15,9 +16,10 @@ const screenWidth = Dimensions.get("window").width;
 interface Product {
   id: string;
   name: string;
-  price: number;
-  priceSale: number;
-  image: ImageSourcePropType;
+  original_price: number; // Giá cũ
+  discount_price: number; // Giá giảm
+  discount: number; // Phần trăm giảm giá
+  image: ImageSourcePropType; // Hình ảnh sản phẩm
 }
 
 interface CardviewProductSuggestProps {
@@ -30,27 +32,30 @@ const CardviewProductSuggest: React.FC<CardviewProductSuggestProps> = ({
   onPress,
 }) => {
   // Chuyển đổi giá thành chuỗi hiển thị
-  const oldPriceText = product.price.toLocaleString("vi-VN", {
-    style: "currency",
-    currency: "VND",
-  });
-  const salePriceText = product.priceSale.toLocaleString("vi-VN", {
+  const oldPriceText = product.original_price.toLocaleString("vi-VN", {
     style: "currency",
     currency: "VND",
   });
 
-  // Nếu không có sale (priceSale = 0) thì dòng trên sẽ để trống
-  const showOldPrice = product.priceSale > 0 ? oldPriceText : "";
+  const salePriceText = product.discount_price.toLocaleString("vi-VN", {
+    style: "currency",
+    currency: "VND",
+  });
 
-  // Nếu không có sale (priceSale = 0) thì dòng dưới là giá bình thường
+  // Nếu không có sale (discount_price = 0) thì dòng trên sẽ để trống
+  const showOldPrice = product.original_price > 0 ? oldPriceText : "";
+
+  // Nếu không có sale (discount_price = 0) thì dòng dưới là giá bình thường
   // nếu có sale thì dòng dưới là giá sale
   const showNewPrice =
-    product.priceSale > 0 ? salePriceText : oldPriceText;
+    product.discount_price > 0 ? salePriceText : oldPriceText;
+
+  const imageSource = { uri: Im_URL + (product.image as { uri: string }).uri };
 
   return (
     <TouchableOpacity activeOpacity={0.8} onPress={onPress}>
       <View style={styles.card}>
-        <Image source={product.image} style={styles.cardImage} />
+        <Image source={imageSource} style={styles.cardImage} />
 
         {/* Tên sản phẩm (tối đa 2 dòng) */}
         <Text style={[styles.cardName, { minHeight: 40, lineHeight: 20 }]} numberOfLines={2}>
@@ -59,12 +64,19 @@ const CardviewProductSuggest: React.FC<CardviewProductSuggestProps> = ({
 
         {/* Vùng hiển thị giá (luôn luôn 2 dòng) */}
         <View style={styles.priceArea}>
-          <Text style={styles.cardPriceOriginal}>
+          {/* Chỉ hiển thị giá cũ nếu có sale */}
+          <Text
+            style={[
+              styles.cardPriceOriginal,
+              { opacity: showOldPrice ? 1 : 0 }, // Ẩn giá cũ nếu không có sale
+            ]}
+          >
             {showOldPrice}
           </Text>
+
           <Text
             style={
-              product.priceSale > 0 ? styles.cardPriceSale : styles.cardPrice
+              product.discount_price > 0 ? styles.cardPriceSale : styles.cardPrice
             }
           >
             {showNewPrice}
@@ -108,7 +120,6 @@ const styles = StyleSheet.create({
   priceArea: {
     minHeight: 50, // Đảm bảo chiều cao cho 2 dòng, bất kể có sale hay không
     justifyContent: "space-between",
-    
   },
 
   /* Dòng giá cũ */
@@ -119,6 +130,8 @@ const styles = StyleSheet.create({
     textDecorationLine: "line-through",
     marginLeft: 10,
     marginRight: 10,
+    // Không hiển thị khi không có sale
+    opacity: 0, 
   },
 
   /* Dòng giá sale */

@@ -1,55 +1,70 @@
-import React from "react";
-import { View, Text, StyleSheet } from "react-native";
+import React, { useEffect, useState } from "react";
+import { View, Text, StyleSheet, Button, ActivityIndicator } from "react-native";
 import { router } from "expo-router";
-import { Image } from 'expo-image';  // Import expo-image
+import { Image } from 'expo-image';
 import FixedHeader from "@/components/custom/FixedHeader";
-import { Button } from "react-native";
+import { BASE_URL, get_noti } from "../../api";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
+// 👇 Define type for a notification item
+type NotificationItem = {
+  title: string;
+  content: string;
+  time: string;
+};
 
 export default function NotiScreen() {
-  const notifications = [
-    {
-      id: "1",
-      title: "Tiêu Đề Thông Báo",
-      time: "00:00 23/2/2025",
-      content: "Nội Dung Thông Báo Baozvvvvvvvvvvvvvvvv",
-    },
-  ];
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const icons = {
     loa: require("../../assets/images/loa_icon.png"),
     cart: require("../../assets/images/cart_img.png"),
   };
 
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      let type = await AsyncStorage.getItem('type');
+      try {
+        const response = await fetch(`${BASE_URL}${get_noti}?type=${type}`);
+        const data = await response.json();
+        if (data.notifications) {
+          setNotifications(data.notifications);
+        }
+      } catch (error) {
+        console.error("Lỗi khi gọi API:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchNotifications();
+  }, []);
+
   return (
     <View style={styles.container}>
-      {/* Header */}
       <FixedHeader />
 
-      {/* Danh sách thông báo */}
-      {notifications.map((item) => (
-        <View key={item.id} style={styles.notificationContainer}>
-          <Image source={icons.loa} style={styles.ic} contentFit="contain" />
-          <View style={styles.notificationContent}>
-            <View style={styles.notificationHeader}>
+      {loading ? (
+        <ActivityIndicator size="large" color="#FFA726" style={{ marginTop: 30 }} />
+      ) : notifications.length === 0 ? (
+        <Text style={{ textAlign: "center", marginTop: 30 }}>Không có thông báo.</Text>
+      ) : (
+        notifications.map((item, index) => (
+          <View key={index.toString()} style={styles.notificationContainer}>
+            <Image source={icons.loa} style={styles.ic} contentFit="contain" />
+            <View style={styles.notificationContent}>
               <Text style={styles.notificationTitle}>{item.title}</Text>
               <Text style={styles.notificationTime}>{item.time}</Text>
+              <Text style={styles.notificationText}>{item.content}</Text>
             </View>
-            <Text style={styles.notificationText}>{item.content}</Text>
           </View>
-        </View>
-      ))}
-
-      {/* Link đến các màn hình khác */}
-      <Button title="Chuyển đến Sale" onPress={() => router.push("/flash_sale_screen")} />
-      <Button title="Chuyển đến product" onPress={() => router.push("/product_screen")} />
-      <Button title="Chuyển đến cart" onPress={() => router.push("/cart_screen")} />
-      <Button title="Chuyển đến order" onPress={() => router.push("/order_screen")} />
-      <Button title="Chuyển đến address" onPress={() => router.push("/Address_Screen")} />
-      <Button title="Chuyển đến Delivered orderorder" onPress={() => router.push("/delivered_order_screen")} />
-
+        ))
+      )}
     </View>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: {

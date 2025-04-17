@@ -1,88 +1,94 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
   StyleSheet,
   FlatList,
+  TouchableOpacity,
   Dimensions,
   ScrollView,
-  Image as RNImage,
-  ImageSourcePropType,
+  Alert,
 } from "react-native";
-import { router } from "expo-router";
-import FixedHeader from "@/components/custom/FixedHeader";
+import { Image } from "expo-image"; // Sử dụng expo-image cho load ảnh từ URL
 import CardviewProductSuggest from "../../components/home/CardviewProductSuggest";
 import CardviewProductSale from "../../components/home/CardviewProductSale";
-import { BASE_URL } from "../../api";
+import { useRouter } from "expo-router";
+import FixedHeader from "@/components/custom/FixedHeader";
+import { BASE_URL, Get_product_sale_api, Get_productdx_api } from "../../api";
 
 const screenWidth = Dimensions.get("window").width;
 
 interface ProductSale {
   id: string;
+  link: string;
   name: string;
-  oldPrice: number;
-  newPrice: number;
-  discount: string;
-  image: ImageSourcePropType;
+  original_price: number;
+  discount_price: number;
+  discount: number;
 }
 
 interface ProductSuggest {
   id: string;
+  link: string;
   name: string;
-  price: number;
-  priceSale: number;
-  image: ImageSourcePropType;
+  original_price: number;
+  discount_price: number;
+  discount: number;
 }
 
 export default function HomeScreen() {
   const [productsSale, setProductsSale] = useState<ProductSale[]>([]);
   const [productsSuggest, setProductsSuggest] = useState<ProductSuggest[]>([]);
-
+  const [isLoading, setIsLoading] = useState(true);
+  const router = useRouter();
+  const handleXemDxuat = () => {
+    // Chuyển hướng đến trang sale (đổi đường dẫn nếu cần)
+    //router.push("/listProduct");
+    router.push(`/listProduct`)
+  };
+  const handleSale = () => {
+    // Chuyển hướng đến trang sale (đổi đường dẫn nếu cần)
+    //router.push("/listProduct");
+    router.push(`/flash_sale_screen`)
+  };
   useEffect(() => {
-    const fetchProducts = async () => {
+    async function fetchProducts() {
+      // Fetch products_sale
       try {
-        // ✅ FLASH SALE
-        const saleRes = await fetch(`${BASE_URL}/api/product/products_sale`);
-        const saleJson = await saleRes.json();
-
-        const sortedSale = saleJson.products
-          .sort((a: any, b: any) => b.discount_percent - a.discount_percent)
-          .slice(0, 10); // Lấy tối đa 10 sản phẩm
-
-        const saleData: ProductSale[] = sortedSale.map((item: any) => ({
-          id: item.id,
-          name: item.name,
-          oldPrice: item.price,
-          newPrice: item.sale_price,
-          discount: `${item.discount_percent}%`,
-          image: { uri: `${BASE_URL}${item.link}` },
-        }));
-
-        setProductsSale(saleData);
+        const saleResponse = await fetch(`${BASE_URL}${Get_product_sale_api}`, {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+        });
+        const saleData = await saleResponse.json();
+        if (saleData && saleData.products) {
+          setProductsSale(saleData.products);
+        } else {
+          Alert.alert("Lỗi", "Không nhận được dữ liệu sản phẩm giảm giá.");
+        }
       } catch (error) {
-        console.error("❌ Lỗi khi gọi API sản phẩm sale:", error);
+        console.error("Error fetching products sale:", error);
+        Alert.alert("Lỗi", "Không thể tải sản phẩm giảm giá.");
       }
 
+      // Fetch products_dx
       try {
-        // ✅ SẢN PHẨM ĐỀ XUẤT
-        const suggestRes = await fetch(`${BASE_URL}/api/product/products_dx`);
-        const suggestJson = await suggestRes.json();
-
-        const limitedSuggest = suggestJson.products.slice(0, 20); // Lấy tối đa 20 sản phẩm
-
-        const suggestData: ProductSuggest[] = limitedSuggest.map((item: any) => ({
-          id: item.id,
-          name: item.name,
-          price: item.original_price,
-          priceSale: item.discount_price,
-          image: { uri: `${BASE_URL}${item.link}` },
-        }));
-
-        setProductsSuggest(suggestData);
+        const dxResponse = await fetch(`${BASE_URL}${Get_productdx_api}`, {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+        });
+        const dxData = await dxResponse.json();
+        if (dxData && dxData.products) {
+          setProductsSuggest(dxData.products);
+        } else {
+          Alert.alert("Lỗi", "Không nhận được dữ liệu sản phẩm đề xuất.");
+        }
       } catch (error) {
-        console.error("❌ Lỗi khi gọi API sản phẩm đề xuất:", error);
+        console.error("Error fetching products suggest:", error);
+        Alert.alert("Lỗi", "Không thể tải sản phẩm đề xuất.");
+      } finally {
+        setIsLoading(false);
       }
-    };
+    }
 
     fetchProducts();
   }, []);
@@ -90,48 +96,71 @@ export default function HomeScreen() {
   return (
     <View style={styles.container}>
       <FixedHeader />
-
       <ScrollView
         style={styles.scrollContainer}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
-        <RNImage
+        {/* Banner */}
+        <Image
           source={require("../../assets/images/banner.png")}
-style={styles.image_Banner}
+          contentFit="contain"
+          style={styles.image_Banner}
         />
 
-        {/* FLASH SALE */}
+        {/* Danh sách sản phẩm giảm giá */}
         <View style={styles.saleSection}>
           <View style={styles.saleHeader}>
-            <RNImage
+            <Image
               source={require("../../assets/images/sale_img.gif")}
               style={styles.image_gif}
+              contentFit="contain"
             />
+           <TouchableOpacity onPress={handleSale}>
             <Text style={styles.textSale}>Xem {">"}</Text>
+          </TouchableOpacity>
           </View>
 
-          <FlatList
-            horizontal
-            data={productsSale}
-            keyExtractor={(item) => item.id}
-            renderItem={({ item }) => (
-              <CardviewProductSale
-                product={item}
-                onPress={() => router.push(`/product_screen?id=${item.id}`)}
-              />
-            )}
-            showsHorizontalScrollIndicator={false}
-          />
+          {isLoading ? (
+            <Text style={styles.loadingText}>Đang tải sản phẩm...</Text>
+          ) : (
+            <FlatList
+              horizontal
+              data={productsSale}
+              keyExtractor={(item) => item.id}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  onPress={() => {
+                    console.log(`Navigating to product_screen with id: ${item.id}`); // Debug log
+                    router.push(`/product_screen?idp=${encodeURIComponent(item.id)}`);
+                  }}
+                >
+                  <CardviewProductSale
+                    product={{
+                      id: item.id,
+                      image: { uri: item.link },
+                      name: item.name,
+                      original_price: item.discount_price,
+                      discount_price: item.original_price,
+                      discount: item.discount,
+                    }}
+                  />
+                </TouchableOpacity>
+              )}
+              showsHorizontalScrollIndicator={false}
+            />
+          )}
         </View>
 
         <View style={styles.divider} />
 
-        {/* SẢN PHẨM ĐỀ XUẤT */}
-        <View style={styles.saleHeader}>
+        {/* Danh mục đề xuất */}
+        <View style={styles.dxHeader}>
           <Text style={styles.textDexuat}>Đề xuất</Text>
-          <Text style={styles.textSale}>Xem {">"}</Text>
+          <TouchableOpacity onPress={handleXemDxuat}>
+            <Text style={styles.textSale}>Xem {">"}</Text>
+          </TouchableOpacity>
         </View>
 
         <FlatList
@@ -142,11 +171,17 @@ style={styles.image_Banner}
           renderItem={({ item }) => (
             <CardviewProductSuggest
               product={{
-                ...item,
-                price: item.price,
-                priceSale: item.priceSale > 0 ? item.priceSale : 0,
+                id: item.id,
+                image: { uri: item.link },
+                name: item.name,
+                original_price: item.discount_price,
+                discount_price: item.original_price,
+                discount: item.discount,
               }}
-              onPress={() => router.push(`/product_screen?id=${item.id}`)}
+              onPress={() => {
+                router.push(`/product_screen?idp=${encodeURIComponent(item.id)}`);
+
+              }}
             />
           )}
           showsVerticalScrollIndicator={false}
@@ -160,8 +195,8 @@ style={styles.image_Banner}
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
-    paddingBottom: 60,
+    backgroundColor: "#f9f9f9",
+    paddingBottom: 40,
   },
   scrollContainer: {
     flex: 1,
@@ -175,12 +210,10 @@ const styles = StyleSheet.create({
     width: "100%",
     alignSelf: "center",
     aspectRatio: 10 / 3,
-    resizeMode: "cover",
   },
   image_gif: {
     width: "25%",
     aspectRatio: 6 / 3,
-    resizeMode: "contain",
   },
   saleSection: {
     marginBottom: 10,
@@ -191,19 +224,29 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignSelf: "center",
     alignItems: "center",
+  },
+  dxHeader: {
+    width: screenWidth,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignSelf: "center",
+    alignItems: "center",
     marginBottom: 5,
+    marginTop: 8,
+
   },
   textDexuat: {
     textAlign: "left",
     marginLeft: 10,
     fontSize: 18,
     fontWeight: "bold",
-    color: "#Ff8000",
+    color: "#FF8000",
   },
   textSale: {
     textAlign: "right",
     marginRight: 30,
-    color: "#Ff8000",
+    color: "#FF8000",
+    padding: 10
   },
   columnWrapper: {
     justifyContent: "space-between",
@@ -214,5 +257,11 @@ const styles = StyleSheet.create({
     backgroundColor: "rgb(202, 202, 202)",
     marginHorizontal: screenWidth * 0.01,
     justifyContent: "center",
+  },
+  loadingText: {
+    textAlign: "center",
+    fontSize: 16,
+    color: "#FF8000",
+    marginVertical: 10,
   },
 });
