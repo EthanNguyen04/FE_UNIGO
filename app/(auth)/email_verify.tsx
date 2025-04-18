@@ -1,47 +1,45 @@
 import { useState } from "react";
-import { View, TextInput, TouchableOpacity, StyleSheet, Alert } from "react-native";
+import { View, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from "react-native";
 import { useRouter } from "expo-router";
 import CustomText from "@/components/custom/CustomText";
-import axios from "axios";
-import { ActivityIndicator } from "react-native"; // Đảm bảo import ActivityIndicator
+import { BASE_URL, SendOtpRsPass_api } from "../../api";
 
-type SendEmailScreenProps = {
+type SendOTPScreenProps = {
   emailFromLogin?: string;
 };
 
-export default function SendEmailScreen({ emailFromLogin }: SendEmailScreenProps) {
+export default function SendOTPScreen({ emailFromLogin }: SendOTPScreenProps) {
   const router = useRouter();
   const [email, setEmail] = useState(emailFromLogin || "");
-  const [loading, setLoading] = useState(false); // Đặt `useState` trong component
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSendOTP = async () => {
     if (!email) {
-      Alert.alert("Lỗi", "Vui lòng nhập email.");
+      Alert.alert("Lỗi", "Vui lòng nhập email!");
       return;
     }
 
-    setLoading(true); // 👉 Bắt đầu loading
-
+    setIsLoading(true);
     try {
-      const response = await axios.post("http://192.168.31.165:3000/api/user/send_otprs", {
-        email,
+      const response = await fetch(`${BASE_URL}${SendOtpRsPass_api}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email }),
       });
 
+      const data = await response.json();
       if (response.status === 200) {
-        Alert.alert("Thành công", "OTP đã được gửi đến email của bạn.");
-        router.push({
-          pathname: "/input_otp_verification",
-          params: { email: email, type: "send_otprs" },
-        });
+        // Sau khi gửi OTP thành công, chuyển hướng sang màn /otp
+        router.push(`/input_otp_verification?emailR=${encodeURIComponent(email)}&type=resetpassword`);
+
       } else {
-        Alert.alert("Lỗi", response.data.message || "Không thể gửi OTP.");
+        Alert.alert("Lỗi", data.message || "Có lỗi xảy ra, vui lòng thử lại sau.");
       }
     } catch (error) {
-      console.error("Lỗi khi gửi OTP:", error);
-      const errorMessage = error.response?.data?.message || "Email không tồn tại trong hệ thống.";
-      Alert.alert("Lỗi", errorMessage);
+      console.error("Error sending OTP:", error);
+      Alert.alert("Lỗi", "Có lỗi xảy ra khi gửi OTP, vui lòng thử lại.");
     } finally {
-      setLoading(false); // 👉 Dừng loading
+      setIsLoading(false);
     }
   };
 
@@ -56,18 +54,13 @@ export default function SendEmailScreen({ emailFromLogin }: SendEmailScreenProps
         placeholder="Nhập email"
         placeholderTextColor="gray"
         keyboardType="email-address"
-        autoCapitalize="none"
         value={email}
         onChangeText={(text) => setEmail(text)}
       />
 
-      <TouchableOpacity
-        style={[styles.sendOtpButton, loading && { opacity: 0.6 }]}
-        onPress={handleSendOTP}
-        disabled={loading}
-      >
-        {loading ? (
-          <ActivityIndicator size="small" color="#fff" />
+      <TouchableOpacity style={styles.sendOtpButton} onPress={handleSendOTP}>
+        {isLoading ? (
+          <ActivityIndicator color="white" />
         ) : (
           <CustomText style={styles.sendOtpButtonText}>Gửi OTP</CustomText>
         )}
@@ -79,7 +72,7 @@ export default function SendEmailScreen({ emailFromLogin }: SendEmailScreenProps
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: 90,
+    justifyContent: "center",
     paddingHorizontal: 20,
     backgroundColor: "white",
   },

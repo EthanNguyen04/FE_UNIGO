@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useContext } from "react";
 import {
   View,
   Text,
@@ -6,200 +6,165 @@ import {
   TouchableOpacity,
   StyleSheet,
   Platform,
-  ActivityIndicator, 
+  KeyboardAvoidingView,
+  ScrollView,
+  ActivityIndicator,
+  Alert,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import CustomText from "@/components/custom/CustomText";
-import { useFocusEffect } from "@react-navigation/native"; 
-import React from "react";
-
+import { TokenContext } from "@/contexts/TokenContext";
+import { BASE_URL, LOGIN_api } from "../../api";
+import { AuthContext } from "@/contexts/AuthContext";
 
 export default function LoginScreen() {
   const router = useRouter();
-  const [passwordVisible, setPasswordVisible] = useState(false);
-  const [focusEmail, setFocusEmail] = useState(false);
-  const [focusPassword, setFocusPassword] = useState(false);
+  const { setToken } = useContext(TokenContext);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [emailError, setEmailError] = useState("");
   const [passwordError, setPasswordError] = useState("");
-  const [generalError, setGeneralError] = useState("");
-  const [loading, setLoading] = useState(false); // Thêm state loading
+  const [isLoading, setIsLoading] = useState(false);
+  const { setAuthData } = useContext(AuthContext);
 
-  useFocusEffect(
-    React.useCallback(() => {
-      // Reset lại email, password và các lỗi khi quay lại màn hình
-      setEmail('');
-      setPassword('');
-      setEmailError('');
-      setPasswordError('');
-      setGeneralError('');
-    }, [])
-  );
-  const validateEmail = (text: string) => {
+  // Hàm kiểm tra email hợp lệ
+  const validateEmail = (text: string): string => {
     const emailRegex = /\S+@\S+\.\S+/;
     if (!text) return "Email không được để trống";
     if (!emailRegex.test(text)) return "Email không hợp lệ";
     return "";
   };
 
-  const validatePassword = (text: string) => {
+  // Hàm kiểm tra password hợp lệ
+  const validatePassword = (text: string): string => {
     if (!text) return "Mật khẩu không được để trống";
     if (text.length < 6) return "Mật khẩu phải có ít nhất 6 ký tự";
     return "";
   };
 
-  const handleLogin = async () => {
+  const handleLogin = async (): Promise<void> => {
     const emailValidation = validateEmail(email);
     const passwordValidation = validatePassword(password);
 
     setEmailError(emailValidation);
     setPasswordError(passwordValidation);
 
-    if (!emailValidation && !passwordValidation) {
-      setLoading(true); // Bắt đầu loading khi gọi API
-      try {
-        const response = await fetch("http://192.168.31.165:3000/api/user/login", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, password }),
-        });
+    if (emailValidation || passwordValidation) return;
 
-        const data = await response.json();
-        console.log("Login API response:", data);
+    setIsLoading(true);
+    try {
+      const response = await fetch(`${BASE_URL}${LOGIN_api}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        // Không gửi otp ở bước này, API sẽ gửi OTP qua email
+        body: JSON.stringify({ email: email, password: password,}),
+      });
+      const data = await response.json();
 
-        if (response.ok && data.message === "OTP đã được gửi đến email.") {
-          // Gửi OTP thành công → Chuyển sang màn nhập OTP
-          const encodedEmail = encodeURIComponent(email);
-          const encodedPassword = encodeURIComponent(password);
-          router.push(`/input_otp_verification?email=${encodedEmail}&password=${encodedPassword}&type=login`);
+      if (response.status === 200) {
+        // Nếu API trả về token, tức OTP đã được xác thực
+        if (data.token) {
+          setToken(data.token);
+          router.push("/home");
         } else {
-          // Nếu sai tài khoản hoặc mật khẩu
-          setPasswordError(data.message || "Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.");
+          // Nếu không có token, tức OTP đã được gửi đến email
+          // Chuyển hướng sang màn hình OTP để người dùng nhập OTP
+          setAuthData(email, password);
+          router.push(`/input_otp_verification?email=${encodeURIComponent(email)}&type=login`);
         }
-      } catch (error) {
-        console.error("Lỗi khi gọi API:", error);
-        setPasswordError("Đã xảy ra lỗi. Vui lòng thử lại sau.");
-      } finally {
-        setLoading(false);
+      } else {
+        Alert.alert("Lỗi", data.message || "Có lỗi xảy ra, vui lòng thử lại.");
       }
+    } catch (error) {
+      console.error("Error during login:", error);
+      Alert.alert("Lỗi", "Đã có lỗi xảy ra, vui lòng thử lại sau.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  // Reset validation errors when screen is focused again
-  useFocusEffect(
-    React.useCallback(() => {
-      setEmailError("");
-      setPasswordError("");
-      setGeneralError("");
-    }, [])
-  );
-
   return (
-    <View style={styles.container}>
-      <CustomText style={styles.title}>Chào mừng bạn</CustomText>
-      <CustomText style={styles.subtitle}>Đăng nhập để tiếp tục</CustomText>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+    >
+      <ScrollView contentContainerStyle={styles.scrollView}>
+        <CustomText style={styles.title}>Chào mừng bạn</CustomText>
+        <CustomText style={styles.subtitle}>Đăng nhập để tiếp tục</CustomText>
 
-      {/* Email */}
-      <CustomText style={styles.label}>Email</CustomText>
-      <TextInput
-        style={[
-          styles.input,
-          { borderBottomColor: focusEmail ? "orange" : emailError ? "red" : "gray" },
-        ]}
-        placeholder="Nhập email"
-        placeholderTextColor="gray"
-        keyboardType="email-address"
-        value={email}
-        onChangeText={(text) => setEmail(text)}
-        onFocus={() => {
-          setFocusEmail(true);
-          setEmailError("");
-        }}
-        onBlur={() => {
-          setFocusEmail(false);
-          setEmailError(validateEmail(email));
-        }}
-      />
-      {emailError ? (
-        <Text style={styles.errorText}>
-          <Ionicons name="alert-circle" size={14} color="red" /> {emailError}
-        </Text>
-      ) : null}
-
-      {/* Mật khẩu */}
-      <CustomText style={styles.label}>Mật khẩu</CustomText>
-      <View style={[styles.passwordContainer, focusPassword && styles.inputFocused]}>
+        {/* Email Input */}
+        <CustomText style={styles.label}>Email</CustomText>
         <TextInput
           style={[
             styles.input,
-            { flex: 1, borderBottomColor: focusPassword ? "orange" : passwordError ? "red" : "gray" },
+            { borderBottomColor: emailError ? "red" : "gray" },
           ]}
-          placeholder="Nhập mật khẩu"
+          placeholder="Nhập email"
           placeholderTextColor="gray"
-          secureTextEntry={!passwordVisible}
-          value={password}
-          onChangeText={(text) => setPassword(text)}
-          onFocus={() => {
-            setFocusPassword(true);
-            setPasswordError("");
-          }}
-          onBlur={() => {
-            setFocusPassword(false);
-            setPasswordError(validatePassword(password));
-          }}
+          keyboardType="email-address"
+          value={email}
+          onChangeText={(text: string) => setEmail(text)}
+          onBlur={() => setEmailError(validateEmail(email))}
         />
-        <TouchableOpacity onPress={() => setPasswordVisible(!passwordVisible)} style={styles.eyeIcon}>
-          <Ionicons name={passwordVisible ? "eye-off" : "eye"} size={20} color="gray" />
+        {emailError ? <Text style={styles.errorText}>{emailError}</Text> : null}
+
+        {/* Password Input */}
+        <CustomText style={styles.label}>Mật khẩu</CustomText>
+        <View style={styles.passwordContainer}>
+          <TextInput
+            style={[
+              styles.input,
+              { flex: 1, borderBottomColor: passwordError ? "red" : "gray" },
+            ]}
+            placeholder="Nhập mật khẩu"
+            placeholderTextColor="gray"
+            secureTextEntry={true}
+            value={password}
+            onChangeText={(text: string) => setPassword(text)}
+            onBlur={() => setPasswordError(validatePassword(password))}
+          />
+          <TouchableOpacity onPress={() => {}}>
+            <Ionicons name="eye" size={20} color="gray" />
+          </TouchableOpacity>
+        </View>
+        {passwordError ? <Text style={styles.errorText}>{passwordError}</Text> : null}
+        {/* Quên mật khẩu */}
+        <TouchableOpacity style={styles.forgotPasswordContainer} onPress={() => router.push("/email_verify")}>
+          <CustomText style={styles.forgotPassword}>Quên mật khẩu?</CustomText>
         </TouchableOpacity>
-      </View>
-      {passwordError ? (
-        <Text style={styles.errorText}>
-          <Ionicons name="alert-circle" size={14} color="red" /> {passwordError}
-        </Text>
-      ) : null}
+        {/* Nút đăng nhập */}
+        <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
+          {isLoading ? (
+            <ActivityIndicator color="white" />
+          ) : (
+            <CustomText style={styles.loginButtonText}>Đăng Nhập</CustomText>
+          )}
+        </TouchableOpacity>
 
-      {/* Thông báo lỗi tổng quát */}
-      {generalError ? (
-        <Text style={styles.errorText}>
-          <Ionicons name="alert-circle" size={14} color="red" /> {generalError}
-        </Text>
-      ) : null}
-
-      {/* Quên mật khẩu */}
-      <TouchableOpacity style={styles.forgotPasswordContainer} onPress={() => router.push("/email_verify")}>
-        <CustomText style={styles.forgotPassword}>Quên mật khẩu?</CustomText>
-      </TouchableOpacity>
-
-      {/* Đăng nhập */}
-      <TouchableOpacity style={styles.loginButton} onPress={handleLogin} disabled={loading}>
-        {loading ? (
-          <ActivityIndicator size="small" color="#ffffff" /> // Hiển thị spinner khi đang tải
-        ) : (
-          <CustomText style={styles.loginButtonText}>Đăng Nhập</CustomText>
-        )}
-      </TouchableOpacity>
-
-      {/* Chân trang */}
-      <View style={styles.footer}>
-        <CustomText style={styles.footerText}>
-          Bạn chưa có tài khoản?{" "}
-          <CustomText style={styles.registerText} onPress={() => router.push("/register")}>
-            Đăng Ký
+        {/* Footer */}
+        <View style={styles.footer}>
+          <CustomText style={styles.footerText}>
+            Bạn chưa có tài khoản?{" "}
+            <CustomText style={styles.registerText} onPress={() => router.push("/register")}>
+              Đăng Ký
+            </CustomText>
           </CustomText>
-        </CustomText>
-      </View>
-    </View>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: "white",
+  },
+  scrollView: {
+    flexGrow: 1,
     justifyContent: "center",
     paddingHorizontal: 20,
-    backgroundColor: "white",
   },
   title: {
     fontSize: 26,
@@ -213,9 +178,9 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 16,
     fontWeight: "bold",
-    marginBottom: 0,
-    marginTop: 20,
-    color: '#818181'
+    marginBottom: 5,
+    marginTop: 10,
+    color: "#818181",
   },
   input: {
     borderWidth: 0,
@@ -223,19 +188,11 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     fontSize: 16,
     backgroundColor: "transparent",
-    ...(Platform.OS === "web" ? { outlineWidth: 0 } : {}),
     marginStart: 5,
-  },
-  inputFocused: {
-    borderBottomColor: "orange",
   },
   passwordContainer: {
     flexDirection: "row",
     alignItems: "center",
-  },
-  eyeIcon: {
-    position: "absolute",
-    right: 0,
   },
   errorText: {
     color: "#EB0D0D",
@@ -266,12 +223,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   footer: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: "#EEEAEAA1",
-    padding: 10,
+    marginTop: 20,
     alignItems: "center",
   },
   footerText: {
