@@ -1,145 +1,139 @@
-import React from 'react';
-import { StyleSheet, View, Text, FlatList, TouchableOpacity, SafeAreaView } from 'react-native';
-import ItemProductOrder, { Order } from '../../components/order/item_product_order'
-import { Ionicons } from '@expo/vector-icons';
-import HeaderWithBack from '@/components/custom/headerTop';
+import React, { useState, useEffect } from "react";
+import { 
+  ScrollView,
+  SafeAreaView, 
+  StyleSheet, 
+  Text, 
+  TouchableOpacity, 
+  View, 
+  ActivityIndicator, 
+  ToastAndroid, 
+  Alert 
+} from "react-native";
+import ItemProductOrder, { Order } from "../../components/order/item_product_order";
+import HeaderWithBack from "@/components/custom/headerBack";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import DeliveryInfo from "@/components/order/info_order";
+import DiscountSelector from "@/components/order/choose_discount";
+import PaymentSelector from "@/components/order/payment";
 
-const orderList: Order[] = [
-    {
-        image: 'https://media.loveitopcdn.com/853/quan-dui-nam-dai-ong-con-xanh-den-bia.jpg',
-        name: 'Premium Tangerine Shirt',
-        price: 200000,
-        color: 'Vàng',
-        size: 'L',
-        quantity: 4,
-    },
-    {
-        image: 'https://media.loveitopcdn.com/853/quan-dui-nam-dai-ong-con-xanh-den-bia.jpg',
-        name: 'Denim Jacket',
-        price: 350000,
-        color: 'Xanh',
-        size: 'M',
-        quantity: 1,
-    },
-    {
-        image: 'https://media.loveitopcdn.com/853/quan-dui-nam-dai-ong-con-xanh-den-bia.jpg',
-        name: 'Casual Sneakers',
-        price: 150000,
-        color: 'Trắng',
-        size: '42',
-        quantity: 2,
-    },
-];
+const OrderScreen: React.FC = () => {
+  // Lấy dữ liệu từ param truyền qua (CartScreen đã stringify JSON trước khi chuyển)
+  const params = useLocalSearchParams<{ selectedProducts?: string }>();
+  const router = useRouter();
 
-const OrderScreen = () => {
-    return (
-        <SafeAreaView style={styles.containerSafeArea}>
-            <HeaderWithBack title="Giỏ hàng" />
-            <View style={styles.container}>
-                <View style={styles.containerInfo}>
-                    <View style={styles.containerAdress}>
-                        <Ionicons name="location" size={20} color="#FF8000" />
-                        <Text style={styles.addressTitle}>Địa chỉ nhận hàng</Text>
-                    </View>
-                    <View style={styles.containerInfoUser}>
-                        <Text style={styles.userInfo}>Tên khách hàng</Text>
-                        <Text style={styles.userInfo}>012345678</Text>
-                        <Ionicons name="create" size={30} color="#FF8000" />
-                    </View>
-                    <Text style={styles.addressInfo}>Địa chỉ nhận hàng</Text>
-                </View>
-                <FlatList
-                    data={orderList}
-                    showsHorizontalScrollIndicator={false}
-                    renderItem={({ item }) => (
-                        <ItemProductOrder {...item} />
-                    )}
-                    ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
-                />
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (params.selectedProducts) {
+      try {
+        // Phân tích chuỗi JSON nhận được, đảm bảo nếu thiếu key image thì gán chuỗi rỗng
+        const parsedOrders = JSON.parse(params.selectedProducts) as Order[];
+        const ordersWithDefaultImage = parsedOrders.map(item => ({
+          ...item,
+          image: item.image || ""  // Nếu chưa có image
+        }));
+        setOrders(ordersWithDefaultImage);
+      } catch (error) {
+        console.error("Error parsing selectedProducts:", error);
+      }
+    }
+  }, [params.selectedProducts]);
+
+  // Tính tổng tiền theo giá * số lượng
+  const totalPrice = orders.reduce((total, item) => total + item.price * item.quantity, 0);
+
+  return (
+    <SafeAreaView style={styles.containerSafeArea}>
+      <HeaderWithBack title="Đơn hàng" />
+      <DeliveryInfo />
+      
+      {/* Sửa style cho ScrollView: bỏ flex: 1 để nó chỉ cao bằng nội dung */}
+      <ScrollView style={styles.container} >
+        {loading ? (
+          <ActivityIndicator size="large" color="#FF6600" />
+        ) : (
+          orders.map((order) => (
+            <View 
+              key={order.product_id} 
+              style={{ marginBottom: 2 }}
+            >
+              <ItemProductOrder {...order} />
             </View>
-            <View style={styles.containerPayment}>
-                <View style={styles.priceContainer}>
-                    <Text style={styles.totalText}>Tổng thanh toán (8)</Text>
-                    <Text style={styles.priceText}>đ1.600.000</Text>
-                </View>
-                <TouchableOpacity style={styles.buyButton}>
-                    <Text style={styles.buyButtonText}>Giao hàng (1)</Text>
-                </TouchableOpacity>
-            </View>
-        </SafeAreaView>
-    );
-}
+          ))
+        )}
+      </ScrollView>
+      
+      <DiscountSelector 
+        discountCode="" 
+        onPress={() => Alert.alert("Chọn mã giảm giá")}
+      />
+      
+      <View style={styles.containerPayment}>
+        <View style={styles.priceContainer}>
+          <Text style={styles.totalText}>
+            Tổng thanh toán ({orders.length})
+          </Text>
+          <Text style={styles.priceText}>
+            {totalPrice.toLocaleString("vi-VN", {
+              style: "currency",
+              currency: "VND",
+              maximumFractionDigits: 0,
+            })}
+          </Text>
+        </View>
+        <TouchableOpacity 
+          style={styles.buyButton}
+          onPress={() => {
+            ToastAndroid.show("Tiến hành đặt hàng", ToastAndroid.SHORT);
+          }}
+        >
+          <Text style={styles.buyButtonText}>Thanh Toán</Text>
+        </TouchableOpacity>
+      </View>
+    </SafeAreaView>
+  );
+};
 
 const styles = StyleSheet.create({
-    containerSafeArea: {
-        flex: 1
-    },
-    container: {
-        flex: 1
-    },
-    containerInfo: {
-        padding: 12,
-        margin: 12,
-        backgroundColor: 'white',
-        borderBottomWidth: 1,
-        borderColor: '#eee',
-        borderRadius: 16,
-        gap: 4
-    },
-    containerAdress: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 12
-    },
-    containerInfoUser: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        gap: 8
-    },
-    addressTitle: {
-        fontSize: 22,
-        color: '#FF8000',
-    },
-    userInfo: {
-        flex: 1,
-        fontSize: 18,
-        fontWeight: '400'
-    },
-    addressInfo: {
-        fontSize: 18,
-        fontWeight: '400'
-    },
-    containerPayment: {
-        backgroundColor: '#fff',
-        padding: 12,
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-    },
-    priceContainer: {
-        gap: 4
-    },
-    totalText: {
-        fontSize: 14,
-        color: '#333',
-    },
-    priceText: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        color: '#FF6600',
-    },
-    buyButton: {
-        backgroundColor: '#FF6600',
-        paddingVertical: 12,
-        paddingHorizontal: 20,
-        borderRadius: 6,
-    },
-    buyButtonText: {
-        color: '#fff',
-        fontWeight: '600',
-        fontSize: 16,
-    },
-})
+  containerSafeArea: {
+    flex: 1,
+    backgroundColor: "#f0f0f0",
+  },
+  // Ở đây loại bỏ flex: 1 để ScrollView chỉ cao bằng nội dung của nó
+  container: {
+  },
+  containerPayment: {
+    backgroundColor: "#fff",
+    padding: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  priceContainer: {
+    gap: 4,
+  },
+  totalText: {
+    fontSize: 14,
+    color: "#333",
+  },
+  priceText: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#FF6600",
+  },
+  buyButton: {
+    backgroundColor: "#FF6600",
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 6,
+  },
+  buyButtonText: {
+    color: "#fff",
+    fontWeight: "600",
+    fontSize: 16,
+  },
+});
 
 export default OrderScreen;

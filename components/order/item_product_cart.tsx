@@ -1,137 +1,182 @@
-import React, { FC, useState } from 'react';
-import { StyleSheet, View, Image, Text, Touchable, TouchableOpacity } from 'react-native';
-import { Colors } from '@/constants/Colors';
-import { Ionicons } from '@expo/vector-icons';
-import QuantityPicker from './choose_quantity';
-import BottomSheetProductOptions from './bottom_sheet_product';
+import React, { useState, useEffect } from "react";
+import { TouchableOpacity, View, Text, StyleSheet, Dimensions } from "react-native";
+import { AntDesign } from "@expo/vector-icons";
+import { Image } from "expo-image";
+
+const { width } = Dimensions.get("window");
+
+// Mở rộng interface Cart để thêm prop selected và các callback tăng/giảm số lượng (nếu cần)
 export interface Cart {
-    id: number,
-    image: string,
-    price: number,
-    name: string,
-    type: String,
-    color: String,
-    quantity: number,
-    selectedColor?: string;
-    selectedSize?: string;
-    colors: string[],
-    sizes: string[],
-    onRemove?: () => void,
-    onChangeQuantity?: (quantity: number) => void
-    selected?: boolean;
+  productId: string;
+  name: string;
+  firstImage: string;
+  color: string;
+  size: string;
+  quantity: number;
+  price: number;
+  onPress: () => void;
+  onIncrement?: (newQuantity: number) => void;
+  onDecrement?: (newQuantity: number) => void;
+  selected?: boolean;
 }
 
-const ItemProductCart: FC<Cart> = (props) => {
-    const [visible, setVisible] = useState(false);
+const ItemProductCart: React.FC<Cart> = ({
+  productId,
+  name,
+  firstImage,
+  color,
+  size,
+  quantity,
+  price,
+  onPress,
+  onIncrement,
+  onDecrement,
+  selected = false,
+}) => {
+  // Sử dụng state nội bộ để quản lý số lượng
+  const [currentQuantity, setCurrentQuantity] = useState<number>(quantity);
 
-    return (
-        <View style={styles.container}>
-            <Image source={{ uri: props.image }} style={styles.image} />
-            <View style={styles.containerInfo}>
-                <View style={styles.containerName}>
-                    <Text style={styles.textLabel}>{props.name}</Text>
-                    <TouchableOpacity onPress={props.onRemove}><Ionicons name="close" size={20} color="black" /></TouchableOpacity>
-                </View>
-                <TouchableOpacity onPress={() => { setVisible(!visible) }}>
-                    <View style={styles.containerType}>
-                        <Text style={styles.textType}>
-                            {props.color}, {props.type}
-                        </Text>
-                        <Ionicons name="arrow-down" size={12} color="black" />
-                    </View>
-                </TouchableOpacity>
+  useEffect(() => {
+    setCurrentQuantity(quantity);
+  }, [quantity]);
 
-                <View style={styles.containerQuantity}>
-                    <Text style={styles.textPrice}>
-                        {props.price.toLocaleString('vi-VN')}đ
-                    </Text>
-                    <QuantityPicker
-                        initialValue={1}
-                        onChange={(value) => props.onChangeQuantity?.(value)}
-                    />
-                </View>
-            </View>
-            <BottomSheetProductOptions
-                visible={visible}
-                onClose={() => setVisible(false)}
-                colors={props.colors}
-                sizes={props.sizes}
-                defaultColor={props.selectedColor}
-                defaultSize={props.selectedSize}
-                onSelectColor={(color) => console.log('Chọn màu:', color)}
-                onSelectSize={(size) => console.log('Chọn size:', size)}
-            />
+  const handleIncrement = () => {
+    const newQuantity = currentQuantity + 1;
+    setCurrentQuantity(newQuantity);
+    if (onIncrement) {
+      onIncrement(newQuantity);
+    }
+  };
+
+  const handleDecrement = () => {
+    if (currentQuantity <= 1) return;
+    const newQuantity = currentQuantity - 1;
+    setCurrentQuantity(newQuantity);
+    if (onDecrement) {
+      onDecrement(newQuantity);
+    }
+  };
+
+  return (
+    <TouchableOpacity style={styles.container} onPress={onPress}>
+        {/* Ô select (nổi lên trên tất cả) ở góc trên bên phải */}
+        <View style={styles.selectIndicator}>
+          <AntDesign 
+            name={selected ? "checksquare" : "checksquareo"} 
+            size={20} 
+            color="#FF6600" 
+          />
         </View>
-    );
-}
+      <View style={styles.imageContainer}>
+        {firstImage !== "" && (
+          <Image source={{ uri: firstImage }} style={styles.image} contentFit="cover" />
+        )}
+
+      </View>
+      <View style={styles.details}>
+        {/* Dòng tên sản phẩm chỉ 1 dòng, nếu dài sẽ bị cắt và hiển thị dấu "..." */}
+        <Text style={styles.name} numberOfLines={1} ellipsizeMode="tail">
+          {name}
+        </Text>
+        {/* Hiển thị màu và kích cỡ trên cùng một dòng */}
+        <View style={styles.row}>
+          <Text style={styles.detail}>{color}</Text>
+          <Text style={[styles.detail, styles.size]}>{size}</Text>
+        </View>
+        <Text style={styles.price}>
+          {price.toLocaleString("vi-VN", {
+            style: "currency",
+            currency: "VND",
+            maximumFractionDigits: 0,
+          })}
+        </Text>
+        {/* Layout tăng giảm số lượng */}
+        <View style={styles.quantityContainer}>
+          <TouchableOpacity onPress={handleDecrement} style={styles.quantityButton}>
+            <Text style={styles.quantityButtonText}>-</Text>
+          </TouchableOpacity>
+          <Text style={styles.quantityText}>{currentQuantity}</Text>
+          <TouchableOpacity onPress={handleIncrement} style={styles.quantityButton}>
+            <Text style={styles.quantityButtonText}>+</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </TouchableOpacity>
+  );
+};
 
 const styles = StyleSheet.create({
-    container: {
-        flexDirection: 'row',
-        borderRadius: 12,
-        padding: 8,
-        marginHorizontal: 12,
-        backgroundColor: Colors.white,
-        shadowColor: Colors.black,
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
-        elevation: 6,
-        gap: 8
-    },
-    image: {
-        borderRadius: 8,
-        width: 100,
-        height: 100,
-        resizeMode: 'cover'
-    },
-    containerInfo: {
-        flex: 1,
-        justifyContent: 'space-between',
-        gap: 8
-    },
-    containerName: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        gap: 12
-    },
-    containerType: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        alignSelf: 'flex-start',
-        borderRadius: 8,
-        backgroundColor: '#D9D9D9',
-        padding: 4,
-        gap: 4
-    },
-    containerQuantity: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center'
-    },
-    textLabel: {
-        flex: 1,
-        fontSize: 18
-    },
-    textType: {
-        fontSize: 14,
-        color: '#797780'
-    },
-    textPrice: {
-        fontSize: 18,
-        color: '#FF8000'
-    },
-    radio: {
-        width: 20,
-        height: 20,
-        borderRadius: 10,
-        borderColor: 'black',
-        borderWidth: 1,
-        backgroundColor: Colors.white
-    },
-    selected: {
-        backgroundColor: 'orange',
-        borderColor: 'orange',
-    }
-})
+  container: {
+    flexDirection: "row",
+    padding: 3,
+    backgroundColor: "#fff",
+    alignItems: "center",
+    marginHorizontal: 5,
+    borderRadius: 10,
+  },
+  imageContainer: {
+    position: "relative",
+  },
+  image: {
+    width: width * 0.35,
+    height: width * 0.35,
+    borderRadius: 8,
+  },
+  selectIndicator: {
+    position: "absolute",
+    bottom: 5,
+    right: 5, // Đặt ở góc trên bên trái, thay đổi thành right nếu muốn ở góc trên bên phải
+    zIndex: 100, // Đảm bảo nổi lên trên tất cả
+    backgroundColor: "#fff",
+    borderRadius: 3,
+  },
+  details: {
+    marginLeft: 12,
+    flex: 1,
+  },
+  name: {
+    fontSize: 16,
+    fontWeight: "bold",
+    marginBottom: 4,
+  },
+  row: {
+    flexDirection: "row",
+    marginBottom: 4,
+  },
+  detail: {
+    fontSize: 14,
+    color: "#555",
+  },
+  size: {
+    marginLeft: 8,
+  },
+  price: {
+    fontSize: 16,
+    color: "#FF6600",
+    fontWeight: "bold",
+    marginBottom: 4,
+  },
+  quantityContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 8,
+  },
+  quantityButton: {
+    borderWidth: 1,
+    borderColor: "#ddd",
+    borderRadius: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
+  quantityButtonText: {
+    fontSize: 16,
+    color: "#333",
+  },
+  quantityText: {
+    fontSize: 16,
+    marginHorizontal: 12,
+    color: "#333",
+  },
+});
 
 export default ItemProductCart;
