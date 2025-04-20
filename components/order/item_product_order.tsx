@@ -1,84 +1,86 @@
-import React, { FC } from 'react';
-import { StyleSheet, View, Image, Text } from 'react-native';
+import React from "react";
+import { View, Text, Image, StyleSheet, Dimensions, TouchableOpacity } from "react-native";
+
+const { width } = Dimensions.get("window");
 
 export interface Order {
-    image: string;
-    name: string;
-    price: number;
-    color: string;
-    size: string;
-    quantity: number;
-};
-
-const ItemProductOrder: FC<Order> = (props) => {
-    return (
-        <View style={styles.container}>
-            <Image source={{ uri: props.image }} style={styles.image} />
-            <View style={styles.containerInfo}>
-                <View style={styles.containerHeader}>
-                    <Text style={styles.textName} numberOfLines={1} ellipsizeMode="tail">{props.name}</Text>
-                    <Text style={styles.textPrice}>{props.price} vnd</Text>
-                </View>
-                <Text style={styles.textTypeSize}>Màu: {props.color}</Text>
-                <View style={styles.containerFooter}>
-                    <Text style={styles.textTypeSize}>Size: {props.size}</Text>
-                    <Text style={styles.textQuantity}>Số lượng: {props.quantity}</Text>
-                </View>
-            </View>
-        </View>
-    );
+  product_id: string;
+  name: string;
+  image: string;
+  color: string;
+  size: string;
+  quantity: number;
+  price: number;
 }
 
+const ItemProductOrder: React.FC<Order> = ({
+  product_id,
+  name,
+  image,
+  color,
+  size,
+  quantity,
+  price, // truyền giá vào
+}) => {
+  // Định dạng giá theo tiền Việt Nam
+  const formattedPrice = price.toLocaleString("vi-VN", {
+    style: "currency",
+    currency: "VND",
+    maximumFractionDigits: 0,
+  });
+  
+  return (
+    <TouchableOpacity style={styles.container}>
+      <View style={styles.details}>
+        <Text style={styles.name} numberOfLines={1} ellipsizeMode="tail">
+          {name}
+        </Text>
+        <View style={styles.row}>
+          <Text style={styles.detail}>Size: {size}</Text>
+          <Text style={[styles.detail, styles.detailMargin]}>Màu: {color}</Text>
+        </View>
+        <Text style={styles.quantity}>Số lượng: {quantity}</Text>
+        <Text style={styles.priceText}>Giá: {formattedPrice}</Text>
+      </View>
+    </TouchableOpacity>
+  );
+};
+
 const styles = StyleSheet.create({
-    container: {
-        flexDirection: 'row',
-        backgroundColor: 'white',
-        borderRadius: 12,
-        padding: 8,
-        marginHorizontal: 12,
-        gap: 8
-    },
-    image: {
-        borderRadius: 12,
-        resizeMode: 'cover',
-        width: 100,
-        height: 100
-    },
-    containerInfo: {
-        flex: 1,
-        gap: 4
-    },
-    containerHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        gap: 12
-    },
-    containerBody: {
-        flexDirection: 'row'
-    },
-    containerFooter: {
-        flexDirection: 'row',
-        justifyContent: 'space-between'
-    },
-    textName: {
-        flex: 1,
-        fontSize: 18,
-        fontWeight: '600',
-    },
-    textPrice: {
-        fontSize: 18,
-        fontWeight: '600'
-    },
-    textTypeSize: {
-        fontSize: 14,
-        fontWeight: '400',
-        color: '#797780',
-        alignSelf: 'flex-start'
-    },
-    textQuantity: {
-        fontSize: 14,
-        fontWeight: '400'
-    }
-})
+  container: {
+    flexDirection: "row",
+    backgroundColor: "#fff",
+    alignItems: "center",
+  },
+
+  details: {
+    marginLeft: 12,
+    flex: 1,
+  },
+  name: {
+    fontSize: 16,
+    fontWeight: "bold",
+    marginBottom: 4,
+  },
+  row: {
+    flexDirection: "row",
+  },
+  detail: {
+    fontSize: 14,
+    color: "#555",
+  },
+  detailMargin: {
+    marginLeft: 8,
+  },
+  quantity: {
+    fontSize: 14,
+    color: "#333",
+  },
+  priceText: {
+    fontSize: 14,
+    color: "#FF6600",
+    fontWeight: "bold",
+  },
+});
 
 export default ItemProductOrder;
