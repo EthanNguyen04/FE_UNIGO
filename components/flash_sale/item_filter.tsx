@@ -1,14 +1,14 @@
 import React from 'react';
 import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
 
-interface TypeClothes {
-  id: number;
+interface TypeCate {
+  id: string;
   label: string;
   selected?: boolean;
   onPress?: () => void;
 }
 
-const ItemFilterClothes: React.FC<TypeClothes> = (props) => {
+const ItemCate: React.FC<TypeCate> = (props) => {
   return (
     <TouchableOpacity 
       onPress={props.onPress} 
@@ -41,4 +41,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default ItemFilterClothes;
+export default ItemCate;
