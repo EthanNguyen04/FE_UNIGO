@@ -1,5 +1,5 @@
-export const BASE_URL = "http://192.168.0.20:3000/";
-export const Im_URL = "http://192.168.0.20:3000";
+export const BASE_URL = "http://192.168.1.9:3000/";
+export const Im_URL = "http://192.168.1.9:3000";
 
 export const Head_token = "Bearer "; // kết hợp Head_token + token để gửi về server
 

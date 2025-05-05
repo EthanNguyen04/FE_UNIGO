@@ -1,9 +1,32 @@
-import React from 'react';
-import { View, TextInput, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { View, TextInput, StyleSheet, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import CartIcon from './CartIcon';  // Import CartIcon component
+import CartIcon from './CartIcon';
+import { useRouter } from 'expo-router';
 
-const FixedHeader = () => {
+interface FixedHeaderProps {
+  placeholder?: string;
+}
+
+const FixedHeader: React.FC<FixedHeaderProps> = ({ placeholder = "Tìm sản phẩm" }) => {
+  const router = useRouter();
+  const [searchText, setSearchText] = useState("");
+
+  const handleSubmitEditing = () => {
+    if (searchText.trim().length === 0) {
+      Alert.alert("Thông báo", "Vui lòng nhập từ khóa");
+      return;
+    }
+    // Khi nhấn enter và có dữ liệu nhập, chuyển sang màn hình /listProduct và truyền query
+    // router.push({
+    //   pathname: '/listProduct',
+    //   params: { query: searchText }
+    // });
+    router.push({
+      pathname: '/listProduct',
+      params: { query: searchText}
+    })
+  };
 
   return (
     <View style={styles.fixedHeader}>
@@ -13,8 +36,11 @@ const FixedHeader = () => {
           <Ionicons name="search-outline" size={20} color="#888" style={styles.searchIcon} />
           <TextInput
             style={styles.searchInput}
-            placeholder="Tìm sản phẩm"
+            placeholder={placeholder}
             placeholderTextColor="#888"
+            value={searchText}
+            onChangeText={setSearchText}
+            onSubmitEditing={handleSubmitEditing}
           />
         </View>
 
