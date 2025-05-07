@@ -114,6 +114,7 @@ export default function OTPVerificationScreen() {
           setNotificationActive(true);
           setErrorMessage("");
           await AsyncStorage.setItem('token', data.token);
+          await AsyncStorage.setItem('type', "user");
           console.log(data.token);
           router.replace("/home");
         } else if (response.status === 400) {

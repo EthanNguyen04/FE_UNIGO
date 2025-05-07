@@ -1,8 +1,16 @@
-import React, { useEffect, useState } from "react";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+// components/home/profile/OrderProfileComponent.tsx
+
+import React, { useState, useCallback } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Alert,
+} from "react-native";
+import { useRouter, useFocusEffect } from "expo-router";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Image } from "expo-image";
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useRouter } from "expo-router";
 import { BASE_URL, get_oder_count } from "../../../api";
 
 const icons = {
@@ -12,46 +20,50 @@ const icons = {
   review: require("../../../assets/images/evalute_img.png"),
 };
 
-const OrderProfileComponent: React.FC = () => {
-  const [orderCounts, setOrderCounts] = useState({
+type Counts = {
+  choXacNhan: number;
+  choLayHang: number;
+  choGiaoHang: number;
+  daGiao: number;
+};
+
+export default function OrderProfileComponent() {
+  const [orderCounts, setOrderCounts] = useState<Counts>({
     choXacNhan: 0,
     choLayHang: 0,
     choGiaoHang: 0,
     daGiao: 0,
   });
-
   const router = useRouter();
 
-  useEffect(() => {
-    const fetchOrderCount = async () => {
-      try {
-        // Lấy token từ AsyncStorage
-        const token = await AsyncStorage.getItem('token');
-        if (token) {
-          const response = await fetch(`${BASE_URL}${get_oder_count}`, {
-            method: 'GET',
-            headers: {
-              'Authorization': `Bearer ${token}`,
-            },
-          });
-
-          const data = await response.json();
-          console.log(data);
-          // Giả sử API trả về số lượng đơn hàng cho từng trạng thái
-          setOrderCounts({
-            choXacNhan: data.cho_xac_nhan,
-            choLayHang: data.cho_lay_hang,
-            choGiaoHang: data.dang_giao,
-            daGiao: data.da_giao,
-          });
-        }
-      } catch (error) {
-        console.error("Error fetching order counts", error);
-      }
-    };
-
-    fetchOrderCount();
+  const fetchOrderCount = useCallback(async () => {
+    try {
+      const token = await AsyncStorage.getItem("token");
+      if (!token) return;
+      const response = await fetch(`${BASE_URL}${get_oder_count}`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const data = await response.json();
+      setOrderCounts({
+        choXacNhan: data.cho_xac_nhan,
+        choLayHang: data.cho_lay_hang,
+        choGiaoHang: data.dang_giao,
+        daGiao: data.da_giao,
+      });
+    } catch (error) {
+      console.error("Error fetching order counts:", error);
+      Alert.alert("Lỗi", "Không thể tải được số đơn hàng");
+    }
   }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchOrderCount();
+    }, [fetchOrderCount])
+  );
 
   return (
     <View style={styles.card}>
@@ -62,76 +74,52 @@ const OrderProfileComponent: React.FC = () => {
         </TouchableOpacity>
       </View>
       <View style={styles.iconsRow}>
+        {/** Chờ xác nhận */}
         <TouchableOpacity
           style={styles.orderItem}
-          onPress={() => router.push({
-            pathname: '/orders/[tab]',
-            params: { tab: 'pendingConfirmation' }
-          })}
+          onPress={() => router.push({ pathname: '/orders/[tab]', params: { tab: 'pendingConfirmation' } })}
         >
           <View style={styles.iconContainer}>
-            <Image
-              source={icons.xac_nhan}
-              style={styles.orderIcon}
-              contentFit="contain"
-            />
+            <Image source={icons.xac_nhan} style={styles.orderIcon} contentFit="contain" />
             <Text style={styles.orderLabel}>Chờ xác nhận</Text>
             {orderCounts.choXacNhan > 0 && (
               <Text style={styles.redLabel}>{orderCounts.choXacNhan}</Text>
             )}
           </View>
         </TouchableOpacity>
+        {/** Chờ lấy hàng */}
         <TouchableOpacity
           style={styles.orderItem}
-          onPress={() => router.push({
-            pathname: '/orders/[tab]',
-            params: { tab: 'waitingPickup' }
-          })}
+          onPress={() => router.push({ pathname: '/orders/[tab]', params: { tab: 'waitingPickup' } })}
         >
           <View style={styles.iconContainer}>
-            <Image
-              source={icons.cho_lay}
-              style={styles.orderIcon}
-              contentFit="contain"
-            />
+            <Image source={icons.cho_lay} style={styles.orderIcon} contentFit="contain" />
             <Text style={styles.orderLabel}>Chờ lấy hàng</Text>
             {orderCounts.choLayHang > 0 && (
               <Text style={styles.redLabel}>{orderCounts.choLayHang}</Text>
             )}
           </View>
         </TouchableOpacity>
+        {/** Chờ giao hàng */}
         <TouchableOpacity
           style={styles.orderItem}
-          onPress={() => router.push({
-            pathname: '/orders/[tab]',
-            params: { tab: 'delivering' }
-          })}
+          onPress={() => router.push({ pathname: '/orders/[tab]', params: { tab: 'delivering' } })}
         >
           <View style={styles.iconContainer}>
-            <Image
-              source={icons.cho_giao}
-              style={styles.orderIcon}
-              contentFit="contain"
-            />
+            <Image source={icons.cho_giao} style={styles.orderIcon} contentFit="contain" />
             <Text style={styles.orderLabel}>Chờ giao hàng</Text>
             {orderCounts.choGiaoHang > 0 && (
               <Text style={styles.redLabel}>{orderCounts.choGiaoHang}</Text>
             )}
           </View>
         </TouchableOpacity>
+        {/** Đánh giá */}
         <TouchableOpacity
           style={styles.orderItem}
-          onPress={() => router.push({
-            pathname: '/orders/[tab]',
-            params: { tab: 'delivered' }
-          })}
+          onPress={() => router.push({ pathname: '/orders/[tab]', params: { tab: 'delivered' } })}
         >
           <View style={styles.iconContainer}>
-            <Image
-              source={icons.review}
-              style={styles.orderIcon}
-              contentFit="contain"
-            />
+            <Image source={icons.review} style={styles.orderIcon} contentFit="contain" />
             <Text style={styles.orderLabel}>Đánh giá</Text>
             {orderCounts.daGiao > 0 && (
               <Text style={styles.redLabel}>{orderCounts.daGiao}</Text>
@@ -141,7 +129,7 @@ const OrderProfileComponent: React.FC = () => {
       </View>
     </View>
   );
-};
+}
 
 const styles = StyleSheet.create({
   card: {
@@ -205,5 +193,3 @@ const styles = StyleSheet.create({
     paddingHorizontal: 5,
   },
 });
-
-export default OrderProfileComponent;

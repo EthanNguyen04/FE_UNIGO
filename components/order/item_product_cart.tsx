@@ -1,11 +1,20 @@
+// src/components/order/item_product_cart.tsx
 import React, { useState, useEffect } from "react";
-import { TouchableOpacity, View, Text, StyleSheet, Dimensions } from "react-native";
+import {
+  TouchableOpacity,
+  View,
+  Text,
+  StyleSheet,
+  Dimensions,
+  ToastAndroid,
+} from "react-native";
 import { AntDesign } from "@expo/vector-icons";
 import { Image } from "expo-image";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { BASE_URL, Put_update_quantily_cart } from "../../api";
 
 const { width } = Dimensions.get("window");
 
-// Mở rộng interface Cart để thêm prop selected và các callback tăng/giảm số lượng (nếu cần)
 export interface Cart {
   productId: string;
   name: string;
@@ -15,6 +24,7 @@ export interface Cart {
   quantity: number;
   price: number;
   onPress: () => void;
+  onImagePress?: () => void;
   onIncrement?: (newQuantity: number) => void;
   onDecrement?: (newQuantity: number) => void;
   selected?: boolean;
@@ -29,56 +39,89 @@ const ItemProductCart: React.FC<Cart> = ({
   quantity,
   price,
   onPress,
+  onImagePress,
   onIncrement,
   onDecrement,
   selected = false,
 }) => {
-  // Sử dụng state nội bộ để quản lý số lượng
   const [currentQuantity, setCurrentQuantity] = useState<number>(quantity);
 
+  // Đồng bộ khi prop quantity thay đổi
   useEffect(() => {
     setCurrentQuantity(quantity);
   }, [quantity]);
 
-  const handleIncrement = () => {
-    const newQuantity = currentQuantity + 1;
-    setCurrentQuantity(newQuantity);
-    if (onIncrement) {
-      onIncrement(newQuantity);
+  // Gọi API để cập nhật quantity
+  const updateServerQuantity = async (newQty: number) => {
+    try {
+      const token = await AsyncStorage.getItem("token");
+      if (!token) throw new Error("Bạn cần đăng nhập");
+      const res = await fetch(BASE_URL + Put_update_quantily_cart, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          product_id: productId,
+          color,
+          size,
+          quantity: newQty,
+        }),
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.message || "Cập nhật thất bại");
+      }
+    } catch (e: any) {
+      ToastAndroid.show(e.message, ToastAndroid.SHORT);
     }
+  };
+
+  const handleIncrement = () => {
+    const newQty = currentQuantity + 1;
+    setCurrentQuantity(newQty);
+    updateServerQuantity(newQty);
+    onIncrement?.(newQty);
   };
 
   const handleDecrement = () => {
     if (currentQuantity <= 1) return;
-    const newQuantity = currentQuantity - 1;
-    setCurrentQuantity(newQuantity);
-    if (onDecrement) {
-      onDecrement(newQuantity);
-    }
+    const newQty = currentQuantity - 1;
+    setCurrentQuantity(newQty);
+    updateServerQuantity(newQty);
+    onDecrement?.(newQty);
   };
 
   return (
     <TouchableOpacity style={styles.container} onPress={onPress}>
-        {/* Ô select (nổi lên trên tất cả) ở góc trên bên phải */}
-        <View style={styles.selectIndicator}>
-          <AntDesign 
-            name={selected ? "checksquare" : "checksquareo"} 
-            size={20} 
-            color="#FF6600" 
-          />
-        </View>
+      {/* Select Indicator */}
+      <View style={styles.selectIndicator}>
+        <AntDesign
+          name={selected ? "checksquare" : "checksquareo"}
+          size={20}
+          color="#FF6600"
+        />
+      </View>
+
+      {/* Ảnh sản phẩm */}
       <View style={styles.imageContainer}>
         {firstImage !== "" && (
-          <Image source={{ uri: firstImage }} style={styles.image} contentFit="cover" />
+          <TouchableOpacity activeOpacity={0.8} onPress={onImagePress}>
+            <Image
+              source={{ uri: firstImage }}
+              style={styles.image}
+              contentFit="cover"
+            />
+          </TouchableOpacity>
         )}
-
       </View>
+
+      {/* Thông tin chi tiết */}
       <View style={styles.details}>
-        {/* Dòng tên sản phẩm chỉ 1 dòng, nếu dài sẽ bị cắt và hiển thị dấu "..." */}
         <Text style={styles.name} numberOfLines={1} ellipsizeMode="tail">
           {name}
         </Text>
-        {/* Hiển thị màu và kích cỡ trên cùng một dòng */}
         <View style={styles.row}>
           <Text style={styles.detail}>{color}</Text>
           <Text style={[styles.detail, styles.size]}>{size}</Text>
@@ -90,7 +133,6 @@ const ItemProductCart: React.FC<Cart> = ({
             maximumFractionDigits: 0,
           })}
         </Text>
-        {/* Layout tăng giảm số lượng */}
         <View style={styles.quantityContainer}>
           <TouchableOpacity onPress={handleDecrement} style={styles.quantityButton}>
             <Text style={styles.quantityButtonText}>-</Text>
@@ -125,8 +167,8 @@ const styles = StyleSheet.create({
   selectIndicator: {
     position: "absolute",
     bottom: 5,
-    right: 5, // Đặt ở góc trên bên trái, thay đổi thành right nếu muốn ở góc trên bên phải
-    zIndex: 100, // Đảm bảo nổi lên trên tất cả
+    right: 5,
+    zIndex: 100,
     backgroundColor: "#fff",
     borderRadius: 3,
   },

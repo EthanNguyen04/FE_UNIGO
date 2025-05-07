@@ -16,7 +16,8 @@
         "foregroundImage": "./assets/images/logo_img.png",
         "backgroundColor": "#ffffff"
       },
-      "softwareKeyboardLayoutMode": "pan"
+      "softwareKeyboardLayoutMode": "pan",
+      "package": "com.nvt2222.FE_UNIGO"
     },
     "web": {
       "bundler": "metro",
@@ -24,6 +25,7 @@
       "favicon": "./assets/images/logo_img.png"
     },
     "plugins": [
+      "expo-dev-client",
       "expo-router",
       [
         "expo-splash-screen",
@@ -38,6 +40,14 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "edd0acb0-7010-4cba-922c-c669a5a3873d"
+      }
     }
   }
 }

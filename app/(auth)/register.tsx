@@ -110,11 +110,7 @@ export default function RegisterScreen() {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={styles.parent}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-      keyboardVerticalOffset={Platform.OS === "ios" ? 60 : 0}
-    >
+
       <ScrollView
         contentContainerStyle={styles.container}
         keyboardShouldPersistTaps="handled"
@@ -240,7 +236,6 @@ export default function RegisterScreen() {
           </CustomText>
         </View>
       </ScrollView>
-    </KeyboardAvoidingView>
   );
 }
 
