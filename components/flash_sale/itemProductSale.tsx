@@ -7,10 +7,11 @@ import {
   ImageSourcePropType,
   ImageBackground,
   Dimensions,
+  Pressable,
 } from "react-native";
+import { useRouter } from "expo-router"; // <-- thêm dòng này
 
-// Lấy chiều rộng màn hình
-const screenWidth = Dimensions.get('window').width;
+const screenWidth = Dimensions.get("window").width;
 
 interface Product {
   id: string;
@@ -26,47 +27,55 @@ interface ItemProductSale {
 }
 
 const ItemProductSale: React.FC<ItemProductSale> = ({ product }) => {
+  const router = useRouter(); // <-- tạo router
+
+  const handlePress = () => {
+    router.push(`/product_screen?idp=${encodeURIComponent(product.id)}`);
+  };
+
   return (
-    <View style={styles.card}>
-      <View style={styles.imageContainer}>
-        <Image source={product.image} style={styles.cardImage} />
-        <ImageBackground
-          source={require("../../assets/images/bg_sale_img.png")}
-          style={styles.discountBadge}
-          resizeMode="cover"
+    <Pressable onPress={handlePress}>
+      <View style={styles.card}>
+        <View style={styles.imageContainer}>
+          <Image source={product.image} style={styles.cardImage} />
+          <ImageBackground
+            source={require("../../assets/images/bg_sale_img.png")}
+            style={styles.discountBadge}
+            resizeMode="cover"
+          >
+            <Text style={styles.discountText}>-{product.discount}</Text>
+          </ImageBackground>
+        </View>
+
+        <Text
+          style={[styles.cardName, { padding: 3, width: screenWidth * 0.3 }]}
+          numberOfLines={2}
+          ellipsizeMode="tail"
         >
-          <Text style={styles.discountText}>-{product.discount}</Text>
-        </ImageBackground>
-      </View>
-
-      <Text
-        style={[styles.cardName, { padding: 5, width: screenWidth * 0.3 }]}
-        numberOfLines={2}
-        ellipsizeMode="tail"
-      >
-        {product.name}
-      </Text>
-
-      {/* View chứa giá cũ và giá mới, căn chúng xuống dưới */}
-      <View style={styles.priceContainer}>
-        <Text style={styles.oldPrice}>
-          {/* Định dạng và thêm "VND" */}
-          {product.oldPrice.toLocaleString("vi-VN", {
-            style: "currency",
-            currency: "VND",
-          })}
+          {product.name}
         </Text>
-        <Text style={styles.cardPrice}>
-          {/* Định dạng và thêm "VND" */}
-          {product.newPrice.toLocaleString("vi-VN", {
-            style: "currency",
-            currency: "VND",
-          })}
-        </Text>
+
+        <View style={styles.priceContainer}>
+          <View style={styles.oldPriceContainer}>
+            <Text style={styles.oldPrice}>
+              {product.oldPrice.toLocaleString("vi-VN", {
+                style: "currency",
+                currency: "VND",
+              })}
+            </Text>
+          </View>
+          <Text style={styles.cardPrice}>
+            {product.newPrice.toLocaleString("vi-VN", {
+              style: "currency",
+              currency: "VND",
+            })}
+          </Text>
+        </View>
       </View>
-    </View>
+    </Pressable>
   );
 };
+
 
 const styles = StyleSheet.create({
   card: {
@@ -114,24 +123,24 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "flex-end",
     paddingLeft: 5,
-    marginBottom: 10
   },
   oldPriceContainer: {
     flexDirection: "row-reverse",
+    width: screenWidth * 0.3,
     justifyContent: "space-between",
+    paddingRight: 10,
   },
   oldPrice: {
     color: "#888",
     fontSize: 10,
     textDecorationLine: "line-through",
     marginRight: 5,
+    textAlign: "right",
   },
   cardPrice: {
     color: "#ff8000",
     fontSize: 15,
     fontWeight: "bold",
-    textAlign: 'right',
-    marginRight: 10
   },
 });
 

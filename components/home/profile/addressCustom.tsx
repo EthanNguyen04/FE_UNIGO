@@ -7,21 +7,27 @@ import {
   FlatList,
   Alert,
   ActivityIndicator,
+  Modal,
+  Dimensions,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { BASE_URL, getAllAddresses } from "../../api";
+import { BASE_URL, getAllAddresses } from "../../../api";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import AddAddress, { AddAddressData } from "@/components/screen/AddAddress";
-import HeaderWithBack from "@/components/custom/headerBack";
 
-export default function AddressScreen() {
+export interface AddressCustomProps {
+  onClose: () => void;
+}
+
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
+
+const AddressCustom: React.FC<AddressCustomProps> = ({ onClose }) => {
   const [addressList, setAddressList] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [showAddDialog, setShowAddDialog] = useState<boolean>(false);
-  // Để sửa địa chỉ, có thể truyền existingAddress từ danh sách hiện có
   const [addressToEdit, setAddressToEdit] = useState<string>("");
 
-  // Hàm lấy danh sách địa chỉ từ API
+  // Fetch addresses
   const fetchAddresses = async () => {
     setLoading(true);
     try {
@@ -38,11 +44,10 @@ export default function AddressScreen() {
           Authorization: `Bearer ${token}`,
         },
       });
-      if (response.status === 200) {
+      if (response.ok) {
         const data = await response.json();
-        // Ví dụ API trả về: { addresses: [{ address: "...", phone: "..." }, ...] }
         const addressesWithId = data.addresses.map((item: any, index: number) => ({
-          id: `${index}`,
+          id: `${item._id || index}`,
           addressDetail: item.address,
           phone: item.phone,
         }));
@@ -64,11 +69,9 @@ export default function AddressScreen() {
   }, []);
 
   const handleEditAddress = (addressId: string) => {
-    // Tìm item trong danh sách theo id
-    const addressItem = addressList.find((item) => item.id === addressId);
-    if (addressItem) {
-      // Đặt giá trị địa chỉ cần sửa vào state để truyền qua component AddAddress
-      setAddressToEdit(addressItem.addressDetail);
+    const item = addressList.find((i) => i.id === addressId);
+    if (item) {
+      setAddressToEdit(item.addressDetail);
       setShowAddDialog(true);
     } else {
       Alert.alert("Thông báo", `Không tìm thấy địa chỉ có id: ${addressId}`);
@@ -76,15 +79,12 @@ export default function AddressScreen() {
   };
 
   const handleAddNewAddress = () => {
-    // Khi thêm mới thì không truyền oldAddress (để backend hiểu là thêm mới)
     setAddressToEdit("");
     setShowAddDialog(true);
   };
 
-  // Sau khi lưu xong, gọi fetchAddresses để làm mới dữ liệu từ server
   const handleSaveNewAddress = (newAddress: AddAddressData) => {
-    // Nếu đang sửa địa chỉ (addressToEdit có giá trị), cập nhật item trong danh sách cục bộ
-    if (addressToEdit && addressToEdit.trim() !== "") {
+    if (addressToEdit) {
       setAddressList((prev) =>
         prev.map((item) =>
           item.addressDetail === addressToEdit
@@ -97,7 +97,6 @@ export default function AddressScreen() {
         )
       );
     } else {
-      // Nếu thêm mới, gán id mới theo độ dài mảng hiện có
       setAddressList((prev) => [
         ...prev,
         {
@@ -108,75 +107,69 @@ export default function AddressScreen() {
       ]);
     }
     setShowAddDialog(false);
-    // Reload dữ liệu từ API để đảm bảo đồng bộ với backend
     fetchAddresses();
   };
 
-  if (loading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#FF8000" />
-      </View>
-    );
-  }
-
   return (
-    <View style={styles.container}>
-      <HeaderWithBack title="Địa chỉ của bạn" />
+    <Modal visible transparent animationType="fade" onRequestClose={onClose}>
+        <View style={styles.container}>
+          <TouchableOpacity style={styles.addAddressButton} onPress={handleAddNewAddress}>
+            <Text style={styles.addAddressButtonText}>Thêm Địa Chỉ</Text>
+          </TouchableOpacity>
 
-      <TouchableOpacity style={styles.addAddressButton} onPress={handleAddNewAddress}>
-        <Text style={styles.addAddressButtonText}>Thêm Địa Chỉ</Text>
-      </TouchableOpacity>
+          {loading ? (
+            <ActivityIndicator size="large" color="#FF8000" />
+          ) : (
+            <FlatList
+              data={addressList}
+              renderItem={({ item }) => (
+                <View style={styles.addressItem}>
+                  <View style={styles.addressInfo}>
+                    <Text style={styles.namePhoneText}>{item.phone}</Text>
+                    <Text style={styles.addressDetailText}>{item.addressDetail}</Text>
+                  </View>
+                  <TouchableOpacity style={styles.editButton} onPress={() => handleEditAddress(item.id)}>
+                    <Ionicons name="pencil-outline" size={18} color="#666" />
+                  </TouchableOpacity>
+                </View>
+              )}
+              keyExtractor={(item) => item.id}
+              contentContainerStyle={styles.listContainer}
+              ListEmptyComponent={<Text style={styles.emptyText}>Chưa có địa chỉ</Text>}
+            />
+          )}
 
-      <FlatList
-        data={addressList}
-        renderItem={({ item }: any) => (
-          <View style={styles.addressItem}>
-            <View style={styles.addressInfo}>
-              <Text style={styles.namePhoneText}>{item.phone}</Text>
-              <Text style={styles.addressDetailText}>{item.addressDetail}</Text>
-            </View>
-            <TouchableOpacity
-              style={styles.editButton}
-              onPress={() => handleEditAddress(item.id)}
-            >
-              <Ionicons name="pencil-outline" size={18} color="#666" />
-            </TouchableOpacity>
-          </View>
-        )}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.listContainer}
-        ListEmptyComponent={<Text style={styles.emptyText}>Chưa có địa chỉ</Text>}
-      />
+          <AddAddress
+            visible={showAddDialog}
+            onCancel={() => setShowAddDialog(false)}
+            onSave={handleSaveNewAddress}
+            existingAddress={addressToEdit}
+          />
 
-      <AddAddress
-        visible={showAddDialog}
-        onCancel={() => setShowAddDialog(false)}
-        onSave={handleSaveNewAddress}
-        existingAddress={addressToEdit}
-      />
-    </View>
+          <TouchableOpacity onPress={onClose} style={styles.closeIcon}>
+            <Ionicons name="close-circle" size={32} color="#fff" />
+          </TouchableOpacity>
+        </View>
+      
+    </Modal>
   );
-}
+};
 
 const styles = StyleSheet.create({
+ 
   container: {
-    flex: 1,
+    width: SCREEN_WIDTH * 0.9,
+    maxHeight: SCREEN_HEIGHT * 0.8,
     backgroundColor: "#F9F9F9",
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+    borderRadius: 8,
+    padding: 16,
   },
   addAddressButton: {
     backgroundColor: "#FFDAB9",
     paddingVertical: 15,
     alignItems: "center",
     borderRadius: 8,
-    marginHorizontal: 15,
-    marginVertical: 15,
-
+    marginBottom: 10,
   },
   addAddressButtonText: {
     fontSize: 16,
@@ -184,7 +177,7 @@ const styles = StyleSheet.create({
     color: "#333",
   },
   listContainer: {
-    paddingHorizontal: 16,
+    paddingVertical: 10,
   },
   addressItem: {
     flexDirection: "row",
@@ -218,4 +211,11 @@ const styles = StyleSheet.create({
     color: "#666",
     paddingVertical: 20,
   },
+  closeIcon: {
+    position: "absolute",
+    top: 8,
+    right: 8,
+  },
 });
+
+export default AddressCustom;

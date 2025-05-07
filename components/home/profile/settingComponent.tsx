@@ -12,8 +12,6 @@ export interface SettingItem {
 const defaultSettings: SettingItem[] = [
   { id: "1", title: "Tài Khoản & Bảo Mật" },
   { id: "2", title: "Địa Chỉ" },
-  { id: "3", title: "Tài Khoản Thanh Toán" },
-  { id: "4", title: "Đăng Xuất" },
 ];
 
 const SettingComponent: React.FC = () => {
@@ -21,15 +19,10 @@ const SettingComponent: React.FC = () => {
 
   const handlePressSetting = (title: string) => {
     // Ví dụ chuyển màn hình theo title, bạn có thể chuyển theo id hoặc tham số khác.
-    if (title === "Đăng Xuất") {
-      // Ở đây bạn có thể thực hiện logout rồi điều hướng về màn hình đăng nhập, ví dụ:
-      router.push("/login");
-    } else if (title === "Tài Khoản & Bảo Mật") {
+    if (title === "Tài Khoản & Bảo Mật") {
       router.push("/accountScreen");
     } else if (title === "Địa Chỉ") {
       router.push("/addressScreen");
-    } else if (title === "Tài Khoản Thanh Toán") {
-      //router.push("/settings/payment");
     } else {
       // Nếu không định nghĩa route thì hiển thị thông báo
       alert(`Chức năng đang phát triển: ${title}`);

@@ -1,55 +1,57 @@
 import React from "react";
 import {
-  SafeAreaView,
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons"; // hoặc 'react-native-vector-icons/Ionicons'
-import HeaderWithBack from "@/components/custom/headerBack"; // Đường dẫn tùy dự án
+import { Ionicons } from "@expo/vector-icons";
 
-const DeliveryInfo: React.FC = () => {
+interface DeliveryInfoProps {
+  phoneNumber?: string;
+  address?: string;
+  onEdit?: () => void;
+}
+
+const DeliveryInfo: React.FC<DeliveryInfoProps> = ({
+  phoneNumber = "",
+  address,
+  onEdit = () => {},
+}) => {
+  const hasAddress = Boolean(address && address.trim().length > 0);
+
   return (
-      <View style={styles.deliveryContainer}>
-        {/* Dòng: Icon & Tiêu đề */}
-        <View style={styles.locationRow}>
-          <Ionicons name="location-sharp" size={20} color="#FF6600" />
-          <Text style={styles.locationText}>Địa chỉ nhận hàng</Text>
-        </View>
-
-        {/* Dòng: Tên khách hàng & SĐT & nút sửa */}
-        <View style={styles.row}>
-          <Text style={styles.customerName}>Tên khách hàng</Text>
-          <Text style={styles.phoneNumber}>012345678</Text>
-          <TouchableOpacity style={styles.editButton} onPress={() => {}}>
-            <Ionicons name="pencil-outline" size={18} color="#666" />
-          </TouchableOpacity>
-        </View>
-
-        {/* Dòng: Địa chỉ nhận hàng */}
-        <Text style={styles.address}>Địa chỉ nhận hàng</Text>
+    <TouchableOpacity style={styles.deliveryContainer}  onPress={onEdit}>
+      {/* Icon & tiêu đề */}
+      <View style={styles.locationRow}>
+        <Ionicons name="location-sharp" size={20} color="#FF6600" />
+        <Text style={styles.locationText}>Địa chỉ nhận hàng</Text>
       </View>
+
+      {/* Tên khách hàng & SĐT  */}
+      <View style={styles.row}>
+        <Text style={styles.phoneNumber}>{phoneNumber}</Text>
+        <TouchableOpacity style={styles.editButton}>
+          <Ionicons name="pencil-outline" size={18} color="#666" />
+        </TouchableOpacity>
+      </View>
+
+      {/* Địa chỉ hoặc placeholder */}
+      <Text style={[styles.address, !hasAddress && styles.placeholderText]}>
+        {hasAddress ? address : "Hãy chọn địa chỉ nhận hàng"}
+      </Text>
+    </TouchableOpacity>
   );
 };
 
 export default DeliveryInfo;
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#F0F0F0",
-  },
   deliveryContainer: {
     backgroundColor: "#FFFFFF",
     margin: 10,
     padding: 12,
     borderRadius: 8,
-    // Thêm shadow nếu cần
-    // shadowColor: "#000",
-    // shadowOffset: { width: 0, height: 2 },
-    // shadowOpacity: 0.2,
-    // elevation: 2,
   },
   locationRow: {
     flexDirection: "row",
@@ -77,10 +79,17 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   editButton: {
-    marginLeft: "auto", // đẩy icon sang phải
+    marginLeft: "auto",
+        padding: 4,           // thêm padding để vùng chạm rộng hơn
+   justifyContent: "center",
+   alignItems: "center",
   },
   address: {
     fontSize: 14,
     color: "#333",
+  },
+  placeholderText: {
+    color: "#888",
+    fontStyle: "italic",
   },
 });

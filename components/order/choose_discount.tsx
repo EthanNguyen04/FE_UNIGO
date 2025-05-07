@@ -1,18 +1,25 @@
 import React from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { StyleSheet, Text, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
 interface DiscountSelectorProps {
   onPress: () => void;
-  discountCode?: string; // Nếu có mã giảm giá được chọn thì hiển thị, không có thì hiển thị placeholder
+  discountCode?: string;       // Mã giảm giá đã chọn
+  discountPercent?: number;    // Phần trăm giảm giá tương ứng
 }
 
-const DiscountSelector: React.FC<DiscountSelectorProps> = ({ onPress, discountCode }) => {
+const DiscountSelector: React.FC<DiscountSelectorProps> = ({
+  onPress,
+  discountCode,
+  discountPercent,
+}) => {
+  const displayText =discountCode
+    ? `Mã: ${discountCode} - Giảm ${discountPercent ?? 0}%`
+    : "Chọn mã giảm giá";
+
   return (
     <TouchableOpacity style={styles.container} onPress={onPress}>
-      <Text style={styles.text}>
-        {discountCode ? discountCode : "Chọn mã giảm giá"}
-      </Text>
+      <Text style={styles.text}>{displayText}</Text>
       <Ionicons name="chevron-forward-outline" size={20} color="#333" />
     </TouchableOpacity>
   );

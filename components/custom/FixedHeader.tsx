@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react'; 
 import { View, TextInput, StyleSheet, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter, useFocusEffect } from 'expo-router';
 import CartIcon from './CartIcon';
-import { useRouter } from 'expo-router';
 
 interface FixedHeaderProps {
   placeholder?: string;
@@ -12,20 +12,22 @@ const FixedHeader: React.FC<FixedHeaderProps> = ({ placeholder = "Tìm sản ph�
   const router = useRouter();
   const [searchText, setSearchText] = useState("");
 
+  // Khi màn hình focus, clear ô tìm kiếm
+  useFocusEffect(
+    useCallback(() => {
+      setSearchText("");
+    }, [])
+  );
+
   const handleSubmitEditing = () => {
     if (searchText.trim().length === 0) {
       Alert.alert("Thông báo", "Vui lòng nhập từ khóa");
       return;
     }
-    // Khi nhấn enter và có dữ liệu nhập, chuyển sang màn hình /listProduct và truyền query
-    // router.push({
-    //   pathname: '/listProduct',
-    //   params: { query: searchText }
-    // });
     router.push({
       pathname: '/listProduct',
-      params: { query: searchText}
-    })
+      params: { query: searchText }
+    });
   };
 
   return (
@@ -45,7 +47,7 @@ const FixedHeader: React.FC<FixedHeaderProps> = ({ placeholder = "Tìm sản ph�
         </View>
 
         {/* Giỏ hàng */}
-        <CartIcon />
+        <CartIcon /> 
       </View>
     </View>
   );

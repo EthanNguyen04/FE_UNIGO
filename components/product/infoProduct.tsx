@@ -36,18 +36,26 @@ const ProductInfo: React.FC<ProductInfoProps> = ({
   inStock,
 }) => {
 
+  const formatPrice = (price: number) => {
+    // Kiểm tra nếu giá trị price hợp lệ
+    if (typeof price === 'number' && !isNaN(price)) {
+      return price.toLocaleString("vi-VN", { style: "currency", currency: "VND" });
+    }
+    return "Liên hệ"; // Trả về giá trị mặc định khi giá không hợp lệ
+  };
   
+
   return (
     <View style={styles.product_info}>
       <Text style={styles.product_name}>{productName}</Text>
-      
+
       <View style={styles.priceContainer}>
         <View style={styles.priceText}>
           <Text style={styles.price_text}>
-            {priceText.toLocaleString("vi-VN", { style: "currency", currency: "VND" })}
+            {formatPrice(priceText)} {/* Sử dụng formatPrice để kiểm tra giá trị */}
           </Text>
           <Text style={styles.price_discount}>
-            {priceDiscount.toLocaleString("vi-VN", { style: "currency", currency: "VND" })}
+            {formatPrice(priceDiscount)} {/* Sử dụng formatPrice để kiểm tra giá trị */}
           </Text>
         </View>
         <Text style={styles.evaluate}>
@@ -55,7 +63,7 @@ const ProductInfo: React.FC<ProductInfoProps> = ({
         </Text>
       </View>
 
-       {/* Dòng "Đã bán ..." */}
+      {/* Dòng "Đã bán ..." */}
       <View style={styles.row}>
         <Text style={styles.label}>Đã bán: </Text>
         <Text style={styles.value}>{formatNumber(sold)}</Text>

@@ -1,54 +1,101 @@
-import { View, Text, StyleSheet, ImageBackground, TouchableOpacity } from "react-native";
+import { View, Text, StyleSheet, ImageBackground, TouchableOpacity, Alert, BackHandler } from "react-native";
 import CustomText from "@/components/custom/CustomText";
 import Feather from "react-native-vector-icons/Feather";
 import { useRouter } from "expo-router"; 
-import { useEffect } from "react";
-import AsyncStorage from '@react-native-async-storage/async-storage';  // Import AsyncStorage
+import { useEffect, useState } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { BASE_URL, LOGIN_api } from "../api";
 
 export default function IntroScreen() {
-  const router = useRouter(); // Sử dụng useRouter để điều hướng
+  const router = useRouter();
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Kiểm tra AsyncStorage xem có giá trị InApp không
-    const checkInApp = async () => {
-      try {
-        const inApp = await AsyncStorage.getItem("InApp");
-        
-        if (inApp === "true") {
-          // Nếu InApp = true, điều hướng ngay đến /home mà không cần hiển thị màn hình intro
-          router.replace("/home"); // Sử dụng replace để không cho phép quay lại màn hình intro
-        }
-      } catch (error) {
-        console.error("Error reading AsyncStorage", error);
-      }
-    };
+    async function checkLogin() {
+      const inApp = await AsyncStorage.getItem("InApp");
 
-    checkInApp();  // Kiểm tra khi component được render
-  }, [router]);
+      try {
+        const storedToken = await AsyncStorage.getItem("token");
+        console.log(storedToken)
+        if (storedToken) {
+          // Tạo timeout 8s
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 8000);
+
+          const response = await fetch(`${BASE_URL}${LOGIN_api}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ token: storedToken }),
+            signal: controller.signal,
+          });
+          clearTimeout(timeoutId);
+
+          if (response.status === 200) {
+            await AsyncStorage.setItem("InApp", "true");
+            router.replace("/home");
+            return;
+          }
+        }
+
+        // Login không thành công => xóa storage, giữ InApp, check lại
+        await AsyncStorage.clear();
+        await AsyncStorage.setItem("InApp", inApp ?? "");
+        if (inApp === "true") {
+          router.replace("/home");
+          return;
+        }
+      } catch (error: any) {
+        // Không log error lên UI, chỉ show alert
+        const isTimeout = error.name === "AbortError";
+        Alert.alert(
+          "Lỗi kết nối",
+          isTimeout
+            ? "Kết nối chậm, vui lòng thử lại sau."
+            : "Mất kết nối, bạn hãy thông cảm và quay lại sau.",
+          [{ text: "OK", onPress: () => BackHandler.exitApp() }],
+          { cancelable: false }
+        );
+        return;
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    checkLogin();
+  }, []);
 
   const handleStart = async () => {
-    try {
-      // Khi nhấn bắt đầu, thiết lập AsyncStorage InApp = true và điều hướng đến /home
-      await AsyncStorage.setItem("InApp", "true");
-      router.replace("/home"); // Điều hướng đến trang home và không cho phép quay lại màn hình intro
-    } catch (error) {
-      console.error("Error writing AsyncStorage", error);
-    }
+    // Bật InApp và vào home khi user bấm Bắt đầu
+    await AsyncStorage.setItem("InApp", "true");
+    router.replace("/home");
   };
 
+  if (loading) {
+    return null; // hoặc custom Spinner
+  }
+
   return (
-    <ImageBackground 
-      source={require("../assets/images/intro_img.png")} // Ảnh nền
+    <ImageBackground
+      source={require("../assets/images/intro_img.png")}
       style={styles.background}
     >
       <View style={styles.overlay}>
-        <CustomText style={styles.title}>Chào mừng đến với{"\n"}UNIGO</CustomText>
-        <CustomText style={styles.subtitle}>Khám phá thời trang cùng chúng tôi</CustomText>
+        <CustomText style={styles.title}>
+          Chào mừng đến với{"\n"}UNIGO
+        </CustomText>
+        <CustomText style={styles.subtitle}>
+          Khám phá thời trang cùng chúng tôi
+        </CustomText>
       </View>
 
       <TouchableOpacity style={styles.button} onPress={handleStart}>
         <Text style={styles.buttonText}>Bắt đầu</Text>
-        <Feather name="arrow-right" size={24} color="white" style={styles.icon} />
+        <Feather
+          name="arrow-right"
+          size={24}
+          color="white"
+          style={styles.icon}
+        />
       </TouchableOpacity>
     </ImageBackground>
   );
@@ -66,7 +113,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "flex-end",
     alignItems: "center",
-    backgroundColor: "rgba(0,0,0,0.1)", // Lớp phủ giúp chữ dễ đọc hơn
+    backgroundColor: "rgba(0,0,0,0.1)",
     width: "100%",
   },
   title: {
@@ -74,16 +121,16 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "white",
     textAlign: "center",
-    textShadowColor: "rgba(0, 0, 0, 0.9)", // Màu bóng
-    textShadowOffset: { width: 2, height: 2 }, // Dịch bóng
-    textShadowRadius: 5, // Độ mờ bóng
+    textShadowColor: "rgba(0, 0, 0, 0.9)",
+    textShadowOffset: { width: 2, height: 2 },
+    textShadowRadius: 5,
   },
   subtitle: {
     fontSize: 16,
     color: "white",
     textAlign: "center",
     marginBottom: 150,
-    textShadowColor: "rgba(0, 0, 0, 0.8)", // Tương tự như trên
+    textShadowColor: "rgba(0, 0, 0, 0.8)",
     textShadowOffset: { width: 1, height: 1 },
     textShadowRadius: 3,
   },
@@ -103,6 +150,6 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   icon: {
-    marginLeft: 8, // Khoảng cách giữa chữ và icon
+    marginLeft: 8,
   },
 });

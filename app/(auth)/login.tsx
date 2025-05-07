@@ -85,10 +85,6 @@ export default function LoginScreen() {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-    >
       <ScrollView contentContainerStyle={styles.scrollView}>
         <CustomText style={styles.title}>Chào mừng bạn</CustomText>
         <CustomText style={styles.subtitle}>Đăng nhập để tiếp tục</CustomText>
@@ -152,7 +148,6 @@ export default function LoginScreen() {
           </CustomText>
         </View>
       </ScrollView>
-    </KeyboardAvoidingView>
   );
 }
 

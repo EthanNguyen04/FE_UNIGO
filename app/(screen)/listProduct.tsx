@@ -113,14 +113,14 @@ export default function ListProduct() {
         const url = `${BASE_URL}${Get_all_cate}`;
         const response = await fetch(url);
         const data = await response.json();
-
+console.log("ta"+data)
         if (response.ok) {
           setCategories(data.categories);
         } else {
           Alert.alert("Error", data.message || data.error || "Something went wrong");
         }
       } catch (error: any) {
-        console.error("Error fetching categories:", error);
+        //console.error("Error fetching categories:", error);
         Alert.alert("Error", "Có lỗi xảy ra khi tải dữ liệu danh mục.");
       }
     };

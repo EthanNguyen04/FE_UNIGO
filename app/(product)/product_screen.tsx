@@ -1,4 +1,5 @@
-import { BASE_URL, Get_product, Im_URL, Get_all_cate } from "../../api";
+// src/screens/ProductScreen.tsx
+import { BASE_URL, Get_product, Im_URL } from "../../api";
 import React, { useRef, useEffect, useState } from "react";
 import {
   StyleSheet,
@@ -9,7 +10,8 @@ import {
   ScrollView,
   FlatList,
   Animated,
-  Alert,
+  NativeSyntheticEvent,
+  NativeScrollEvent,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
@@ -19,133 +21,133 @@ import ProductInfo from "@/components/product/infoProduct";
 import ContentProduct from "@/components/product/contentProduct";
 import ReviewProduct from "@/components/product/reviewProduct";
 import ProductFooter, { Variant } from "@/components/product/footerProduct";
-import { NativeSyntheticEvent, NativeScrollEvent } from "react-native";
 
 const { width, height } = Dimensions.get("window");
 
 const ProductScreen: React.FC = () => {
-  const [isFavorite, setIsFavorite] = useState(true);
-  const [modalVisible, setModalVisible] = useState(false);
-  const [quantity, setQuantity] = useState(1);
+  const { idp } = useLocalSearchParams<{ idp: string }>();
   const [productData, setProductData] = useState<any>(null);
-  const { idp } = useLocalSearchParams();
-
-  const scrollX = useRef(new Animated.Value(0)).current;
-  const [currentIndex, setCurrentIndex] = useState(1);
+  const [modalVisible, setModalVisible] = useState(false);
   const [selectedAction, setSelectedAction] = useState<string | null>(null);
   const [selectedColor, setSelectedColor] = useState("");
   const [selectedSize, setSelectedSize] = useState("");
+  const [quantity, setQuantity] = useState(1);
+  const [isFavorite, setIsFavorite] = useState(true);
+
+  // Slider state
+  const scrollX = useRef(new Animated.Value(0)).current;
+  const [currentIndex, setCurrentIndex] = useState(1);
 
   useEffect(() => {
-    const fetchProductData = async () => {
-      if (!idp) return;
+    // Fetch product detail
+    if (!idp) return;
+    (async () => {
       try {
-        const response = await fetch(`${BASE_URL}${Get_product}${idp}`);
-        const data = await response.json();
+        const res = await fetch(`${BASE_URL}${Get_product}${idp}`);
+        const data = await res.json();
         setProductData(data);
-      } catch (error) {
-        console.error("Lỗi khi gọi API:", error);
+      } catch (e) {
+        console.error("Lỗi khi gọi API:", e);
       }
-    };
-
-    fetchProductData();
+    })();
   }, [idp]);
 
   if (!productData) {
     return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+      <View style={styles.loading}>
         <Text>Đang tải dữ liệu sản phẩm...</Text>
       </View>
     );
   }
 
-  const { images, name, salePrice, discountPrice, quantity: inStock, description, variants, id } = productData;
+  const {
+    images,
+    name,
+    salePrice,
+    discountPrice,
+    quantity: inStock,
+    description,
+    variants: rawVariants,
+    id: productId,
+  } = productData;
 
-  // Sửa lỗi: ép kiểu để colors và sizes là string[]
-  const colors = variants
-    ? Array.from(new Set(variants.map((v: any) => v.color))) as string[]
-    : [];
-  const sizes = variants
-    ? Array.from(new Set(variants.map((v: any) => v.size))) as string[]
-    : [];
+  // Ép kiểu variants
+  const variants = rawVariants as Variant[];
 
-  const selectedVariant = variants
-    ? variants.find((v: any) => v.color === selectedColor && v.size === selectedSize)
-    : null;
+  // Tính danh sách màu & size
+  const colors = Array.from(new Set(variants.map(v => v.color))) as string[];
+  const sizes  = Array.from(new Set(variants.map(v => v.size)))  as string[];
 
-  const currentPrice = selectedVariant ? selectedVariant.price : salePrice;
-  const currentStock = selectedVariant ? selectedVariant.quantity : inStock;
-
-  const handleScroll = Animated.event(
+  // Khi scroll slider
+  const onScroll = Animated.event(
     [{ nativeEvent: { contentOffset: { x: scrollX } } }],
     {
       useNativeDriver: false,
-      listener: (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-        const index = Math.round(event.nativeEvent.contentOffset.x / width);
-        setCurrentIndex(index + 1);
+      listener: (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+        const idx = Math.round(e.nativeEvent.contentOffset.x / width);
+        setCurrentIndex(idx + 1);
       },
     }
   );
 
-  const handleBack = () => {
-    router.back();
-  };
+  const handleBack = () => router.back();
 
+  // Khi bấm “Mua ngay” ở modal
   const handleConfirmAction = (
     color: string,
     size: string,
-    quantitySelected: number,
+    qty: number,
     action: string,
     variant: Variant,
-    productId: string
+    pid: string
   ) => {
-    // Bỏ Alert, thay vào đó bạn có thể thực hiện xử lý khác (ví dụ: logging hoặc cập nhật state)
-    console.log("Variant selected:", { color, size, quantitySelected, variant, productId, action });
-    // Khi modal đóng, ProductFooter đã hiển thị thông tin của variant được chọn (price & quantity)
-  };
-  
-
-  const handleFavoritePress = (nextValue: boolean) => {
-    setIsFavorite(nextValue);
+    // Tạo mảng selectedProducts gồm đúng 1 phần tử
+    const selectedProducts = [
+      {
+        product_id: pid,
+        name,
+        price: variant.price,
+        size,
+        color,
+        quantity: qty,
+      },
+    ];
+    router.push({
+      pathname: "/order_screen",
+      params: { selectedProducts: JSON.stringify(selectedProducts) },
+    });
   };
 
   return (
-    <View style={styles.Product_Screen}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={handleBack} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color="#000" />
-        </TouchableOpacity>
-        <View style={styles.headerFind}>
-          <FixedHeader />
-        </View>
-      </View>
+    <View style={styles.screen}>
+      {/* Header */}
+      <FixedHeader />
 
+      {/* Content */}
       <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
-        <View style={styles.product_slide}>
+        {/* Slider */}
+        <View style={styles.slider}>
           <FlatList
             data={images}
             horizontal
             pagingEnabled
             showsHorizontalScrollIndicator={false}
-            keyExtractor={(_, index) => index.toString()}
+            keyExtractor={(_, i) => i.toString()}
             renderItem={({ item }) => (
-              <View style={styles.image_product}>
-                <Image
-                  source={{ uri: Im_URL + item }}
-                  style={styles.image}
-                  contentFit="contain"
-                />
+              <View style={styles.imageWrap}>
+                <Image source={{ uri: Im_URL + item }} style={styles.image} contentFit="contain" />
               </View>
             )}
-            onScroll={handleScroll}
+            onScroll={onScroll}
           />
-          <View style={styles.imageCounter}>
+          <View style={styles.counter}>
             <Text style={styles.counterText}>
               {currentIndex}/{images.length}
             </Text>
           </View>
         </View>
 
+        {/* Thông tin */}
         <ProductInfo
           productName={name}
           priceText={salePrice}
@@ -157,12 +159,13 @@ const ProductScreen: React.FC = () => {
 
         <ContentProduct title="Mô tả sản phẩm" description_text={description} />
 
-        <View style={styles.product_vote}>
+        <View style={styles.review}>
           <ReviewProduct reviewCount={0} />
         </View>
       </ScrollView>
 
-      <ProductFooter 
+      {/* Footer với nút Mua/Thêm giỏ */}
+      <ProductFooter
         setIsFavorite={setIsFavorite}
         modalVisible={modalVisible}
         setModalVisible={setModalVisible}
@@ -176,13 +179,11 @@ const ProductScreen: React.FC = () => {
         setQuantity={setQuantity}
         colors={colors}
         sizes={sizes}
-        // Sử dụng variant giá trị được tính toán từ ProductScreen (ví dụ currentPrice, id, variants, ...)
-        productId={id}
         variants={variants}
+        productId={productId}
         onConfirmAction={handleConfirmAction}
-        onFavoritePress={handleFavoritePress}
+        onFavoritePress={setIsFavorite}
       />
-
     </View>
   );
 };
@@ -190,52 +191,52 @@ const ProductScreen: React.FC = () => {
 export default ProductScreen;
 
 const styles = StyleSheet.create({
-  Product_Screen: {
+  screen: {
     flex: 1,
-    backgroundColor: "rgba(255, 255, 255, 1)",
+    backgroundColor: "#fff",
+  },
+  loading: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
   header: {
-    width: width,
+    width,
     flexDirection: "row",
-    backgroundColor: "rgba(255, 255, 255, 1)",
     alignItems: "center",
+    padding: 10,
+    backgroundColor: "#fff",
   },
-  backButton: {
-    padding: 5,
-    marginTop: 10,
+  backBtn: {
+    marginRight: 10,
   },
-  headerFind: {
-    width: width * 0.9,
-    marginRight: 5,
-  },
-  product_slide: {},
-  image_product: {
-    width: width,
-    alignItems: "center",
+  slider: {},
+  imageWrap: {
+    width,
+    height: width * 0.75,
     justifyContent: "center",
-    backgroundColor: "rgb(207, 207, 207)",
+    alignItems: "center",
+    backgroundColor: "#eee",
   },
   image: {
     width: width * 0.95,
     height: width * 0.7,
-    aspectRatio: 16 / 9,
-    borderRadius: width * 0.02,
+    borderRadius: 8,
   },
-  imageCounter: {
+  counter: {
     position: "absolute",
-    bottom: height * 0.017,
-    right: width * 0.035,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-    borderRadius: width * 0.02,
-    paddingHorizontal: width * 0.02,
-    paddingVertical: width * 0.011,
+    bottom: 12,
+    right: 16,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 4,
   },
   counterText: {
     color: "#fff",
-    fontSize: width * 0.025,
-    fontWeight: "bold",
+    fontSize: 12,
   },
-  product_vote: {
-    marginLeft: width * 0.04,
+  review: {
+    marginLeft: 16,
   },
 });

@@ -1,3 +1,5 @@
+import { AuthProvider } from '@/contexts/AuthContext';
+import { NotificationProvider } from '@/contexts/notificationContext';
 import { DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
@@ -33,16 +35,17 @@ export default function RootLayout() {
 
   return (
     <FontContext.Provider value={{ fontFamily: 'Fredoka_Regular' }}>
-      {/* Luôn dùng DefaultTheme để nền sáng */}
-      <ThemeProvider value={DefaultTheme}>
-        <Stack>
-          <Stack.Screen name="index" options={{ headerShown: false }} />
-          <Stack.Screen name="+not-found" options={{ headerShown: false }} />
-        </Stack>
-
-        {/* StatusBar style="dark" sẽ hiển thị icon/ chữ tối trên nền sáng */}
-        <StatusBar style="dark" />
-      </ThemeProvider>
+      <AuthProvider>
+        <ThemeProvider value={DefaultTheme}>
+          <NotificationProvider> 
+            <Stack>
+              <Stack.Screen name="index" options={{ headerShown: false }} />
+              <Stack.Screen name="+not-found" options={{ headerShown: false }} />
+            </Stack>
+            <StatusBar style="dark" />
+          </NotificationProvider>
+        </ThemeProvider>
+      </AuthProvider>
     </FontContext.Provider>
   );
 }
