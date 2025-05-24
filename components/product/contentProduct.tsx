@@ -1,47 +1,50 @@
-import React, { useState } from "react";
-import { View, Text, TouchableOpacity, StyleSheet, Dimensions } from "react-native";
+import React, { useState } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, Dimensions } from 'react-native';
 
-const { width, height } = Dimensions.get("window");
+const { width, height } = Dimensions.get('window');
 
 interface ContentProduct {
-  // Tiêu đề phần mô tả, nếu bạn muốn tuỳ biến
   title?: string;
-  // Nội dung mô tả
   description_text: string;
 }
 
-const ContentProduct: React.FC<ContentProduct> = ({
-  title,
-  description_text,
-}) => {
+const ContentProduct: React.FC<ContentProduct> = ({ title, description_text }) => {
   const [expanded, setExpanded] = useState(false);
+  const [showToggle, setShowToggle] = useState(false);
 
   return (
     <>
       <View style={styles.description}>
-        {/* Tiêu đề */}
-        <Text style={styles.description_name}>{title}</Text>
+        {title && <Text style={styles.description_name}>{title}</Text>}
 
-        {/* Nội dung mô tả, có rút gọn */}
-        <Text style={styles.description_text} numberOfLines={expanded ? undefined : 3}>
+        <Text
+          style={styles.description_text}
+          numberOfLines={expanded ? undefined : 3}
+          onTextLayout={e => {
+            if (!showToggle && e.nativeEvent.lines.length > 3) {
+              setShowToggle(true);
+            }
+          }}
+        >
           {description_text}
         </Text>
 
-        {/* Nút "Xem thêm / Rút gọn" */}
-        <TouchableOpacity onPress={() => setExpanded(!expanded)}>
-          <Text style={styles.seeMoreText}>
-            {expanded ? "Rút gọn" : "Xem thêm"}
-          </Text>
-        </TouchableOpacity>
+        {showToggle && (
+          <TouchableOpacity onPress={() => setExpanded(prev => !prev)}>
+            <Text style={styles.seeMoreText}>
+              {expanded ? 'Rút gọn' : 'Xem thêm'}
+            </Text>
+          </TouchableOpacity>
+        )}
       </View>
 
-      {/* Nếu bạn cần kẻ đường line dưới mô tả, tách view này ra */}
       <View style={styles.info_descriptonproduct} />
     </>
   );
 };
 
 export default ContentProduct;
+
 
 // Style riêng cho ProductDescription
 const styles = StyleSheet.create({
@@ -56,7 +59,8 @@ const styles = StyleSheet.create({
   description_text: {
     marginLeft: width * 0.02,
     fontWeight: "400",
-    marginTop: 10
+    marginTop: 10,
+    marginBottom: 15,
   },
   seeMoreText: {
     fontSize: width * 0.04,

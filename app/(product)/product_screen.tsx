@@ -5,7 +5,6 @@ import {
   StyleSheet,
   Text,
   View,
-  TouchableOpacity,
   Dimensions,
   ScrollView,
   FlatList,
@@ -22,29 +21,28 @@ import ContentProduct from "@/components/product/contentProduct";
 import ReviewProduct from "@/components/product/reviewProduct";
 import ProductFooter, { Variant } from "@/components/product/footerProduct";
 
-const { width, height } = Dimensions.get("window");
+const { width } = Dimensions.get("window");
 
 const ProductScreen: React.FC = () => {
   const { idp } = useLocalSearchParams<{ idp: string }>();
   const [productData, setProductData] = useState<any>(null);
-  const [modalVisible, setModalVisible] = useState(false);
+const [modalVisible, setModalVisible] = useState(false);
   const [selectedAction, setSelectedAction] = useState<string | null>(null);
   const [selectedColor, setSelectedColor] = useState("");
   const [selectedSize, setSelectedSize] = useState("");
   const [quantity, setQuantity] = useState(1);
   const [isFavorite, setIsFavorite] = useState(true);
-
   // Slider state
   const scrollX = useRef(new Animated.Value(0)).current;
   const [currentIndex, setCurrentIndex] = useState(1);
 
   useEffect(() => {
-    // Fetch product detail
     if (!idp) return;
     (async () => {
       try {
         const res = await fetch(`${BASE_URL}${Get_product}${idp}`);
         const data = await res.json();
+        console.log("san pham:", JSON.stringify(data));
         setProductData(data);
       } catch (e) {
         console.error("Lỗi khi gọi API:", e);
@@ -60,25 +58,32 @@ const ProductScreen: React.FC = () => {
     );
   }
 
+  // Destructure đúng tên field từ API
   const {
     images,
     name,
-    salePrice,
-    discountPrice,
-    quantity: inStock,
+    stock,          // API trả về stock
+    sold,
     description,
     variants: rawVariants,
+    discount,       // phần trăm giảm giá
     id: productId,
   } = productData;
 
-  // Ép kiểu variants
+  // Ép kiểu và lấy giá salePrice từ variant đầu tiên
   const variants = rawVariants as Variant[];
+  const salePrice = variants[0]?.price ?? 0;
+  // Tính giá gốc (originalPrice) từ salePrice và discount%
+  const originalPrice =
+    discount > 0
+      ? Math.round(salePrice / (1 - discount / 100))
+      : salePrice;
 
-  // Tính danh sách màu & size
-  const colors = Array.from(new Set(variants.map(v => v.color))) as string[];
-  const sizes  = Array.from(new Set(variants.map(v => v.size)))  as string[];
+  // Danh sách màu & size
+  const colors = Array.from(new Set(variants.map(v => v.color)));
+  const sizes = Array.from(new Set(variants.map(v => v.size)));
 
-  // Khi scroll slider
+  // Xử lý scroll slider
   const onScroll = Animated.event(
     [{ nativeEvent: { contentOffset: { x: scrollX } } }],
     {
@@ -90,9 +95,7 @@ const ProductScreen: React.FC = () => {
     }
   );
 
-  const handleBack = () => router.back();
-
-  // Khi bấm “Mua ngay” ở modal
+  // Khi bấm “Mua ngay”
   const handleConfirmAction = (
     color: string,
     size: string,
@@ -101,7 +104,6 @@ const ProductScreen: React.FC = () => {
     variant: Variant,
     pid: string
   ) => {
-    // Tạo mảng selectedProducts gồm đúng 1 phần tử
     const selectedProducts = [
       {
         product_id: pid,
@@ -120,13 +122,11 @@ const ProductScreen: React.FC = () => {
 
   return (
     <View style={styles.screen}>
-      {/* Header */}
       <FixedHeader />
 
-      {/* Content */}
       <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
         {/* Slider */}
-        <View style={styles.slider}>
+        <View>
           <FlatList
             data={images}
             horizontal
@@ -135,7 +135,11 @@ const ProductScreen: React.FC = () => {
             keyExtractor={(_, i) => i.toString()}
             renderItem={({ item }) => (
               <View style={styles.imageWrap}>
-                <Image source={{ uri: Im_URL + item }} style={styles.image} contentFit="contain" />
+                <Image
+                  source={{ uri: Im_URL + item }}
+                  style={styles.image}
+                  contentFit="contain"
+                />
               </View>
             )}
             onScroll={onScroll}
@@ -147,24 +151,29 @@ const ProductScreen: React.FC = () => {
           </View>
         </View>
 
-        {/* Thông tin */}
+        {/* Thông tin sản phẩm */}
         <ProductInfo
           productName={name}
           priceText={salePrice}
-          priceDiscount={discountPrice}
+          priceDiscount={originalPrice}
           evaluate={4.6}
-          sold={0}
-          inStock={inStock}
+          sold={sold}
+          inStock={stock}
         />
 
-        <ContentProduct title="Mô tả sản phẩm" description_text={description} />
+        {/* Mô tả */}
+        <ContentProduct
+          title="Mô tả sản phẩm"
+          description_text={description}
+        />
 
+        {/* Review */}
         <View style={styles.review}>
           <ReviewProduct reviewCount={0} />
         </View>
       </ScrollView>
 
-      {/* Footer với nút Mua/Thêm giỏ */}
+      {/* Footer mua / thêm giỏ */}
       <ProductFooter
         setIsFavorite={setIsFavorite}
         modalVisible={modalVisible}
@@ -191,26 +200,8 @@ const ProductScreen: React.FC = () => {
 export default ProductScreen;
 
 const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: "#fff",
-  },
-  loading: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  header: {
-    width,
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 10,
-    backgroundColor: "#fff",
-  },
-  backBtn: {
-    marginRight: 10,
-  },
-  slider: {},
+  screen: { flex: 1, backgroundColor: "#fff" },
+  loading: { flex: 1, justifyContent: "center", alignItems: "center" },
   imageWrap: {
     width,
     height: width * 0.75,
@@ -232,11 +223,6 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: 4,
   },
-  counterText: {
-    color: "#fff",
-    fontSize: 12,
-  },
-  review: {
-    marginLeft: 16,
-  },
+  counterText: { color: "#fff", fontSize: 12 },
+  review: { marginLeft: 16 },
 });

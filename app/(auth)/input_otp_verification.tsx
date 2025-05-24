@@ -7,6 +7,7 @@ import { TokenContext } from "@/contexts/TokenContext";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BASE_URL, LOGIN_api, SendOtpRsPass_api } from "../../api";
 import NotiInApp from "@/components/custom/notiInApp";
+import * as Updates from "expo-updates";       // ← thêm vào
 
 export default function OTPVerificationScreen() {
   const router = useRouter();
@@ -116,7 +117,10 @@ export default function OTPVerificationScreen() {
           await AsyncStorage.setItem('token', data.token);
           await AsyncStorage.setItem('type', "user");
           console.log(data.token);
-          router.replace("/home");
+          // router.replace("/home");
+
+          // Reload lại app
+          await Updates.reloadAsync();
         } else if (response.status === 400) {
           setErrorMessage(data.message || "Vui lòng nhập email và mật khẩu!");
         } else if (response.status === 404) {

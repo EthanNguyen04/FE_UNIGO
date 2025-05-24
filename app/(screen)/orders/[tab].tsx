@@ -1,5 +1,5 @@
 // src/screens/OrderTab.tsx
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View,
   Text,
@@ -17,6 +17,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import HeaderWithBack from '@/components/custom/headerBack';
 import { BASE_URL, get_oder_status, Im_URL, Create_payment } from '../../../api';
+import { useFocusEffect } from '@react-navigation/native';
+
 
 const tabs = [
   { label: 'Chờ xác nhận', id: 'pendingConfirmation', apiStatus: 'cho_xac_nhan' },
@@ -36,34 +38,38 @@ export default function OrderTab() {
   const tabsScrollViewRef = useRef<ScrollView>(null);
   const [tabsMeasurements, setTabsMeasurements] = useState<Record<string, { x: number; width: number }>>({});
 
-  // Fetch orders when activeTab changes
-  useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      try {
-        const token = await AsyncStorage.getItem('token');
-        if (!token) throw new Error('Chưa đăng nhập');
-        const apiStatus = tabs.find(t => t.id === activeTab)!.apiStatus;
-        const res = await fetch(`${BASE_URL}${get_oder_status}?status=${apiStatus}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (!res.ok) throw new Error('Lỗi server');
-        const data = await res.json();
-        setOrders(data.orders || []);
-      } catch (e: any) {
-        ToastAndroid.show(e.message, ToastAndroid.SHORT);
-        setOrders([]);
-      } finally {
-        setLoading(false);
-      }
-    };
 
-    Animated.timing(fadeAnim, { toValue: 0, duration: 150, useNativeDriver: true }).start(() => {
-      fetchData().then(() => {
-        Animated.timing(fadeAnim, { toValue: 1, duration: 150, useNativeDriver: true }).start();
-      });
+  const fetchData = useCallback(async () => {
+  setLoading(true);
+  try {
+    const token = await AsyncStorage.getItem('token');
+    if (!token) throw new Error('Chưa đăng nhập');
+    const apiStatus = tabs.find(t => t.id === activeTab)!.apiStatus;
+    const res = await fetch(`${BASE_URL}${get_oder_status}?status=${apiStatus}`, {
+      headers: { Authorization: `Bearer ${token}` },
     });
-  }, [activeTab]);
+    if (!res.ok) throw new Error('Lỗi server');
+    const data = await res.json();
+    setOrders(data.orders || []);
+  } catch (e: any) {
+    ToastAndroid.show(e.message, ToastAndroid.SHORT);
+    setOrders([]);
+  } finally {
+    setLoading(false);
+  }
+}, [activeTab]);
+
+  // Fetch orders when activeTab changes
+  useFocusEffect(
+    useCallback(() => {
+      Animated.timing(fadeAnim, { toValue: 0, duration: 150, useNativeDriver: true }).start(() => {
+        fetchData().then(() => {
+          Animated.timing(fadeAnim, { toValue: 1, duration: 150, useNativeDriver: true }).start();
+        });
+      });
+    }, [fetchData])
+  );
+
 
   // Handle tab press scroll
   const handleTabPress = (tabId: string) => {
