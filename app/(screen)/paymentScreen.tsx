@@ -27,6 +27,9 @@ const PaymentScreen: React.FC = () => {
           ToastAndroid.show(`Return URL status: ${res.status}`, ToastAndroid.SHORT);
 
           const token = await AsyncStorage.getItem("token");
+
+          const urlParams = new URL(lastUrl).searchParams;
+          const vnp_TxnRef = urlParams.get("vnp_TxnRef");
           if (res.status === 200 && token) {
             const updateRes = await fetch(
               `${BASE_URL}${change_payment}${order_Id}`,
@@ -36,7 +39,7 @@ const PaymentScreen: React.FC = () => {
                   "Content-Type": "application/json",
                   Authorization: `Bearer ${token}`,
                 },
-                body: JSON.stringify({ payment_status: "da_thanh_toan" }),
+                body: JSON.stringify({ payment_status: "da_thanh_toan", vnp_TxnRef: vnp_TxnRef,  }),
               }
             );
             ToastAndroid.show(

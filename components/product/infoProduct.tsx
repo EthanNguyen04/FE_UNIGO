@@ -32,8 +32,8 @@ const ProductInfo: React.FC<ProductInfoProps> = ({
   priceText,
   priceDiscount,
   evaluate,
-  sold,
-  inStock,
+  sold = 0,      // nếu undefined => 0
+  inStock = 0,   // nếu undefined => 0
 }) => {
 
   const formatPrice = (price: number) => {
