@@ -11,6 +11,7 @@ import {
   Animated,
   NativeSyntheticEvent,
   NativeScrollEvent,
+  RefreshControl,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
@@ -26,7 +27,7 @@ const { width } = Dimensions.get("window");
 const ProductScreen: React.FC = () => {
   const { idp } = useLocalSearchParams<{ idp: string }>();
   const [productData, setProductData] = useState<any>(null);
-const [modalVisible, setModalVisible] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
   const [selectedAction, setSelectedAction] = useState<string | null>(null);
   const [selectedColor, setSelectedColor] = useState("");
   const [selectedSize, setSelectedSize] = useState("");
@@ -34,31 +35,40 @@ const [modalVisible, setModalVisible] = useState(false);
   const [isFavorite, setIsFavorite] = useState(true);
   const [reviews, setReviews] = useState<any[]>([]);
   const [totalReviews, setTotalReviews] = useState(0);
+  const [refreshing, setRefreshing] = useState(false);
   // Slider state
   const scrollX = useRef(new Animated.Value(0)).current;
   const [currentIndex, setCurrentIndex] = useState(1);
 
+  const fetchData = async () => {
+    try {
+      const res = await fetch(`${BASE_URL}${Get_product}${idp}`);
+      const data = await res.json();
+      console.log("san pham:", JSON.stringify(data));
+      setProductData(data);
+
+      // Fetch evaluations
+      const evalRes = await fetch(`${BASE_URL}${Get_evaluate_product}${idp}`);
+      const evalData = await evalRes.json();
+      console.log("evaluations:", JSON.stringify(evalData));
+      if (evalData.success) {
+        setReviews(evalData.data.evaluates || []);
+        setTotalReviews(evalData.data.total || 0);
+      }
+    } catch (e) {
+      console.error("Lỗi khi gọi API:", e);
+    }
+  };
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await fetchData();
+    setRefreshing(false);
+  };
+
   useEffect(() => {
     if (!idp) return;
-    (async () => {
-      try {
-        const res = await fetch(`${BASE_URL}${Get_product}${idp}`);
-        const data = await res.json();
-        console.log("san pham:", JSON.stringify(data));
-        setProductData(data);
-
-        // Fetch evaluations
-        const evalRes = await fetch(`${BASE_URL}${Get_evaluate_product}${idp}`);
-        const evalData = await evalRes.json();
-        console.log("evaluations:", JSON.stringify(evalData));
-        if (evalData.success) {
-          setReviews(evalData.data.evaluates || []);
-          setTotalReviews(evalData.data.total || 0);
-        }
-      } catch (e) {
-        console.error("Lỗi khi gọi API:", e);
-      }
-    })();
+    fetchData();
   }, [idp]);
 
   if (!productData) {
@@ -136,7 +146,17 @@ const [modalVisible, setModalVisible] = useState(false);
     <View style={styles.screen}>
       <FixedHeader />
 
-      <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+      <ScrollView 
+        contentContainerStyle={{ flexGrow: 1 }}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={["#FF6600"]}
+            tintColor="#FF6600"
+          />
+        }
+      >
         {/* Slider */}
         <View>
           <FlatList
