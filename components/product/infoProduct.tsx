@@ -12,6 +12,7 @@ interface ProductInfoProps {
   evaluate: number;         // Điểm đánh giá
   sold: number;             // Số lượng đã bán
   inStock: number;          // Số lượng tồn kho
+  hidePrice?: boolean;      // Ẩn phần giá
 }
 
 function formatNumber(value: number): string {
@@ -34,6 +35,7 @@ const ProductInfo: React.FC<ProductInfoProps> = ({
   evaluate,
   sold = 0,      // nếu undefined => 0
   inStock = 0,   // nếu undefined => 0
+  hidePrice = false,
 }) => {
 
   const formatPrice = (price: number) => {
@@ -49,19 +51,21 @@ const ProductInfo: React.FC<ProductInfoProps> = ({
     <View style={styles.product_info}>
       <Text style={styles.product_name}>{productName}</Text>
 
-      <View style={styles.priceContainer}>
-        <View style={styles.priceText}>
-          <Text style={styles.price_text}>
-            {formatPrice(priceText)} {/* Sử dụng formatPrice để kiểm tra giá trị */}
-          </Text>
-          <Text style={styles.price_discount}>
-            {formatPrice(priceDiscount)} {/* Sử dụng formatPrice để kiểm tra giá trị */}
+      {!hidePrice && (
+        <View style={styles.priceContainer}>
+          <View style={styles.priceText}>
+            <Text style={styles.price_text}>
+              {formatPrice(priceText)} {/* Sử dụng formatPrice để kiểm tra giá trị */}
+            </Text>
+            <Text style={styles.price_discount}>
+              {formatPrice(priceDiscount)} {/* Sử dụng formatPrice để kiểm tra giá trị */}
+            </Text>
+          </View>
+          <Text style={styles.evaluate}>
+            {evaluate} <AntDesign name="star" size={15} color="gold" />
           </Text>
         </View>
-        <Text style={styles.evaluate}>
-          {evaluate} <AntDesign name="star" size={15} color="gold" />
-        </Text>
-      </View>
+      )}
 
       {/* Dòng "Đã bán ..." */}
       <View style={styles.row}>

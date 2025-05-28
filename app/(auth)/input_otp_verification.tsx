@@ -33,10 +33,9 @@ export default function OTPVerificationScreen() {
     }
   }, [countdown]);
 
-  // Hàm gửi lại OTP: nếu countdown về 0 thì reset countdown và gọi API gửi OTP mới (với otp rỗng)
+  // Hàm gửi lại OTP
   const handleResendOTP = async () => {
     if (countdown === 0) {
-      setErrorMessage("");
       setCountdown(60);
       setIsLoading(true);
       let response;
@@ -44,36 +43,48 @@ export default function OTPVerificationScreen() {
         if (type === "login") {
           response = await fetch(`${BASE_URL}${LOGIN_api}`, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: { 
+              "Content-Type": "application/json",
+              "Accept": "application/json"
+            },
             body: JSON.stringify({
               email: userEmail,
               password: password,
-              otp: "", // Gửi otp rỗng để kích hoạt gửi OTP mới
+              otp: "",
             }),
           });
         } else if (type === "resetpassword") {
           response = await fetch(`${BASE_URL}${SendOtpRsPass_api}`, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: { 
+              "Content-Type": "application/json",
+              "Accept": "application/json"
+            },
             body: JSON.stringify({
               email: emailR,
-              otp: "", // Gửi otp rỗng để kích hoạt gửi OTP mới
+              otp: "",
             }),
           });
         }
+
         if (!response) {
-          setErrorMessage("Loại xác thực không hợp lệ.");
+          setNotificationTitle("Không thể kết nối đến máy chủ");
+          setNotificationActive(true);
           return;
         }
+
         const data = await response.json();
-        if (response.status === 200) {
-          setErrorMessage("OTP đã được gửi lại, vui lòng kiểm tra email!");
+        
+        if (response.ok) {
+          setNotificationTitle("OTP đã được gửi lại, vui lòng kiểm tra email!");
+          setNotificationActive(true);
         } else {
-          setErrorMessage(data.message || "Gửi lại OTP thất bại, vui lòng thử lại.");
+          setNotificationTitle(data.message || "Gửi lại OTP thất bại");
+          setNotificationActive(true);
         }
-      } catch (error) {
-        console.error("Error resending OTP:", error);
-        setErrorMessage("Lỗi gửi lại OTP, vui lòng thử lại sau.");
+      } catch {
+        setNotificationTitle("Lỗi gửi lại OTP, vui lòng thử lại sau");
+        setNotificationActive(true);
       } finally {
         setIsLoading(false);
       }
@@ -84,92 +95,79 @@ export default function OTPVerificationScreen() {
   const handleVerifyOTP = async () => {
     const enteredOtp = otp.join("");
     if (!enteredOtp) {
-      setErrorMessage("Chưa nhập OTP");
+      setNotificationTitle("Vui lòng nhập đầy đủ mã OTP");
+      setNotificationActive(true);
+      return;
+    }
+
+    if (enteredOtp.length !== 4) {
+      setNotificationTitle("Mã OTP phải gồm 4 chữ số");
+      setNotificationActive(true);
       return;
     }
 
     setIsLoading(true);
+
     try {
+      let response;
       if (type === "login") {
-        // Gọi API đăng nhập khi type là login
-        const response = await fetch(`${BASE_URL}${LOGIN_api}`, {
+        response = await fetch(`${BASE_URL}${LOGIN_api}`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: { 
+            "Content-Type": "application/json",
+            "Accept": "application/json"
+          },
           body: JSON.stringify({
             email: userEmail,
             password: password,
             otp: enteredOtp,
           }),
         });
-        let data: any = {};
-        try {
-          data = await response.json();
-        } catch (jsonError) {
-          const text = await response.clone().text();
-          console.error("Failed to parse JSON. Response text:", text);
-          setErrorMessage("Đã có lỗi xảy ra, vui lòng thử lại sau.");
-          return;
-        }
-        if (response.status === 200) {
-          setNotificationTitle(data.message || "Đăng nhập thành công!");
-          setNotificationActive(true);
-          setErrorMessage("");
-          await AsyncStorage.setItem('token', data.token);
-          await AsyncStorage.setItem('type', "user");
-          console.log(data.token);
-          // router.replace("/home");
-
-          // Reload lại app
-          await Updates.reloadAsync();
-        } else if (response.status === 400) {
-          setErrorMessage(data.message || "Vui lòng nhập email và mật khẩu!");
-        } else if (response.status === 404) {
-          setErrorMessage(data.message || "Tài khoản không tồn tại!");
-        } else if (response.status === 401) {
-          setErrorMessage(data.message || "Mật khẩu hoặc OTP không hợp lệ, vui lòng thử lại.");
-        } else {
-          setErrorMessage("Xác thực OTP thất bại, vui lòng thử lại.");
-        }
       } else if (type === "resetpassword") {
-        // Gọi API xác thực OTP cho reset password
-        const response = await fetch(`${BASE_URL}${SendOtpRsPass_api}`, {
+        response = await fetch(`${BASE_URL}${SendOtpRsPass_api}`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: { 
+            "Content-Type": "application/json",
+            "Accept": "application/json"
+          },
           body: JSON.stringify({
             email: emailR,
             otp: enteredOtp,
           }),
         });
-        let data: any = {};
-        try {
-          data = await response.json();
-        } catch (jsonError) {
-          const text = await response.clone().text();
-          console.error("Failed to parse JSON. Response text:", text);
-          setErrorMessage("Đã có lỗi xảy ra, vui lòng thử lại sau.");
-          return;
-        }
-        if (response.status === 200) {
-          setNotificationTitle(data.message || "Xác thực OTP thành công!");
+      } else {
+        setNotificationTitle("Loại xác thực không hợp lệ");
+        setNotificationActive(true);
+        return;
+      }
+
+      if (!response) {
+        setNotificationTitle("Không thể kết nối đến máy chủ");
+        setNotificationActive(true);
+        return;
+      }
+
+      const data = await response.json();
+
+      if (response.ok) {
+        if (type === "login") {
+          setNotificationTitle("Đăng nhập thành công!");
           setNotificationActive(true);
-          setErrorMessage("");
-          // Nhận token trả về và chuyển hướng sang màn hình đặt lại mật khẩu
-          router.push(`/forgot_password?token=${encodeURIComponent(data.token)}`);
-        } else if (response.status === 400) {
-          setErrorMessage(data.message || "Vui lòng nhập đầy đủ thông tin!");
-        } else if (response.status === 404) {
-          setErrorMessage(data.message || "Tài khoản không tồn tại!");
-        } else if (response.status === 401) {
-          setErrorMessage(data.message || "OTP không hợp lệ hoặc đã hết hạn.");
+          await AsyncStorage.setItem('token', data.token);
+          await AsyncStorage.setItem('type', "user");
+          await Updates.reloadAsync();
         } else {
-          setErrorMessage("Xác thực OTP thất bại, vui lòng thử lại.");
+          setNotificationTitle("Xác thực OTP thành công!");
+          setNotificationActive(true);
+          router.push(`/forgot_password?token=${encodeURIComponent(data.token)}`);
         }
       } else {
-        setErrorMessage("Loại xác thực không hợp lệ.");
+        setNotificationTitle(data.message || "Xác thực OTP thất bại");
+        setNotificationActive(true);
       }
-    } catch (error) {
-      console.error("Error verifying OTP:", error);
-      setErrorMessage("Đã có lỗi xảy ra, vui lòng thử lại sau.");
+    } catch {
+      setNotificationTitle("Đã có lỗi xảy ra, vui lòng thử lại sau");
+      setNotificationActive(true);
     } finally {
       setIsLoading(false);
     }
@@ -207,7 +205,6 @@ export default function OTPVerificationScreen() {
       <View style={styles.container}>
         <CustomText style={styles.title}>Xác Thực OTP</CustomText>
         <CustomText style={styles.subtitle}>Nhập mã OTP gồm 4 chữ số</CustomText>
-        <CustomText style={styles.errorText}>{errorMessage}</CustomText>
 
         <View style={styles.otpContainer}>
           {[0, 1, 2, 3].map((index) => (
@@ -232,7 +229,14 @@ export default function OTPVerificationScreen() {
           ))}
         </View>
 
-        <TouchableOpacity style={styles.verifyButton} onPress={handleVerifyOTP}>
+        <TouchableOpacity 
+          style={[
+            styles.verifyButton,
+            isLoading && styles.verifyButtonDisabled
+          ]} 
+          onPress={handleVerifyOTP}
+          disabled={isLoading}
+        >
           {isLoading ? (
             <ActivityIndicator color="white" />
           ) : (
@@ -242,8 +246,16 @@ export default function OTPVerificationScreen() {
 
         <View style={styles.resendContainer}>
           <CustomText style={styles.resendText}>Gửi lại OTP sau: {countdown}s </CustomText>
-          <TouchableOpacity onPress={handleResendOTP} disabled={countdown > 0}>
-            <CustomText style={[styles.resendButton, countdown > 0 ? styles.resendDisabled : styles.resendEnabled]}>
+          <TouchableOpacity 
+            onPress={handleResendOTP} 
+            disabled={countdown > 0 || isLoading}
+          >
+            <CustomText 
+              style={[
+                styles.resendButton, 
+                (countdown > 0 || isLoading) ? styles.resendDisabled : styles.resendEnabled
+              ]}
+            >
               Gửi lại
             </CustomText>
           </TouchableOpacity>
@@ -272,11 +284,18 @@ const styles = StyleSheet.create({
     color: "gray",
     marginBottom: 20,
   },
+  errorContainer: {
+    backgroundColor: '#FFE5E5',
+    padding: 10,
+    borderRadius: 8,
+    marginBottom: 15,
+    borderWidth: 1,
+    borderColor: '#FFB3B3',
+  },
   errorText: {
-    color: "#EB0D0D",
+    color: '#D32F2F',
     fontSize: 14,
-    marginBottom: 10,
-    textAlign: "center",
+    textAlign: 'center',
   },
   otpContainer: {
     flexDirection: "row",
@@ -333,5 +352,9 @@ const styles = StyleSheet.create({
   },
   resendEnabled: {
     color: "#FF8000",
+  },
+  verifyButtonDisabled: {
+    backgroundColor: "#FFB366",
+    opacity: 0.7,
   },
 });
