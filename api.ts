@@ -1,4 +1,7 @@
+
 export const Im_URL = "http://192.168.53.100:3001";
+
+
 export const BASE_URL = `${Im_URL}/`;
 // src/api/index.ts
 
@@ -28,6 +31,7 @@ export const Get_all_product_sale = "api/product/allproducts_sale";
 export const Get_productdx_api = "api/product/products_dx";
 export const Get_product = "api/product/";
 export const Get_All_product = "api/product/searchProducts";
+export const Get_evaluate_product = "api/evaluate/product/";
 
 // Categories
 export const Get_all_cate = "api/category/all_category";
@@ -49,6 +53,8 @@ export const Post_order = "api/order/create_order";
 export const get_oder_count = "api/order/get_oder_count";
 export const get_oder_status = "api/order/get_oder_status";
 export const change_payment = "api/order/payment-status/";
+export const cancel_order = "api/order/cancel_order";
+
 
 // Discount
 export const get_discount_today = "api/discount/discount_today";
@@ -56,3 +62,6 @@ export const get_discount_today = "api/discount/discount_today";
 // VNPAY
 export const Create_payment = "vnpay/create_payment_url";
 export const check_payment = "vnpay/create_payment_url";
+
+//Rating
+export const post_rating = "api/evaluate/add_evaluate";

@@ -26,6 +26,7 @@ export default function LoginScreen() {
   const [emailError, setEmailError] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const { setAuthData } = useContext(AuthContext);
 
   // Hàm kiểm tra email hợp lệ
@@ -44,41 +45,51 @@ export default function LoginScreen() {
   };
 
   const handleLogin = async (): Promise<void> => {
-    const emailValidation = validateEmail(email);
-    const passwordValidation = validatePassword(password);
-
-    setEmailError(emailValidation);
-    setPasswordError(passwordValidation);
-
-    if (emailValidation || passwordValidation) return;
-
-    setIsLoading(true);
     try {
+      const emailValidation = validateEmail(email);
+      const passwordValidation = validatePassword(password);
+
+      setEmailError(emailValidation);
+      setPasswordError(passwordValidation);
+
+      if (emailValidation || passwordValidation) return;
+
+      setIsLoading(true);
       const response = await fetch(`${BASE_URL}${LOGIN_api}`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        // Không gửi otp ở bước này, API sẽ gửi OTP qua email
-        body: JSON.stringify({ email: email, password: password,}),
+        headers: { 
+          "Content-Type": "application/json",
+          "Accept": "application/json"
+        },
+        body: JSON.stringify({ 
+          email: email.trim(), 
+          password: password 
+        }),
       });
-      const data = await response.json();
 
-      if (response.status === 200) {
-        // Nếu API trả về token, tức OTP đã được xác thực
+      const data = await response.json();
+      console.log("Login response:", data);
+
+      if (response.ok) {
         if (data.token) {
           setToken(data.token);
           router.push("/home");
         } else {
-          // Nếu không có token, tức OTP đã được gửi đến email
-          // Chuyển hướng sang màn hình OTP để người dùng nhập OTP
           setAuthData(email, password);
           router.push(`/input_otp_verification?email=${encodeURIComponent(email)}&type=login`);
         }
       } else {
-        Alert.alert("Lỗi", data.message || "Có lỗi xảy ra, vui lòng thử lại.");
+        Alert.alert(
+          "Lỗi đăng nhập",
+          data.message || "Email hoặc mật khẩu không đúng. Vui lòng thử lại."
+        );
       }
     } catch (error) {
       console.error("Error during login:", error);
-      Alert.alert("Lỗi", "Đã có lỗi xảy ra, vui lòng thử lại sau.");
+      Alert.alert(
+        "Lỗi kết nối",
+        "Không thể kết nối đến máy chủ. Vui lòng kiểm tra kết nối internet và thử lại."
+      );
     } finally {
       setIsLoading(false);
     }
@@ -115,13 +126,20 @@ export default function LoginScreen() {
             ]}
             placeholder="Nhập mật khẩu"
             placeholderTextColor="gray"
-            secureTextEntry={true}
+            secureTextEntry={!showPassword}
             value={password}
             onChangeText={(text: string) => setPassword(text)}
             onBlur={() => setPasswordError(validatePassword(password))}
           />
-          <TouchableOpacity onPress={() => {}}>
-            <Ionicons name="eye" size={20} color="gray" />
+          <TouchableOpacity 
+            onPress={() => setShowPassword(!showPassword)}
+            style={styles.eyeIcon}
+          >
+            <Ionicons 
+              name={showPassword ? "eye-off" : "eye"} 
+              size={24} 
+              color="gray" 
+            />
           </TouchableOpacity>
         </View>
         {passwordError ? <Text style={styles.errorText}>{passwordError}</Text> : null}
@@ -188,6 +206,9 @@ const styles = StyleSheet.create({
   passwordContainer: {
     flexDirection: "row",
     alignItems: "center",
+    borderBottomWidth: 1,
+    borderBottomColor: "gray",
+    marginStart: 5,
   },
   errorText: {
     color: "#EB0D0D",
@@ -228,5 +249,8 @@ const styles = StyleSheet.create({
   registerText: {
     fontWeight: "bold",
     textDecorationLine: "underline",
+  },
+  eyeIcon: {
+    padding: 8,
   },
 });
