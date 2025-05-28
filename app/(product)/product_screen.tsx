@@ -32,6 +32,8 @@ const [modalVisible, setModalVisible] = useState(false);
   const [selectedSize, setSelectedSize] = useState("");
   const [quantity, setQuantity] = useState(1);
   const [isFavorite, setIsFavorite] = useState(true);
+  const [reviews, setReviews] = useState<any[]>([]);
+  const [totalReviews, setTotalReviews] = useState(0);
   // Slider state
   const scrollX = useRef(new Animated.Value(0)).current;
   const [currentIndex, setCurrentIndex] = useState(1);
@@ -44,6 +46,15 @@ const [modalVisible, setModalVisible] = useState(false);
         const data = await res.json();
         console.log("san pham:", JSON.stringify(data));
         setProductData(data);
+
+        // Fetch evaluations
+        const evalRes = await fetch(`${BASE_URL}${Get_evaluate_product}${idp}`);
+        const evalData = await evalRes.json();
+        console.log("evaluations:", JSON.stringify(evalData));
+        if (evalData.success) {
+          setReviews(evalData.data.evaluates || []);
+          setTotalReviews(evalData.data.total || 0);
+        }
       } catch (e) {
         console.error("Lỗi khi gọi API:", e);
       }
@@ -69,7 +80,6 @@ const [modalVisible, setModalVisible] = useState(false);
     discount,       // phần trăm giảm giá
     id: productId,
     averageStar,    // số sao trung bình
-    totalReviews,   // tổng số lượt đánh giá
   } = productData;
 
   // Ép kiểu và lấy giá salePrice từ variant đầu tiên
@@ -180,7 +190,10 @@ const [modalVisible, setModalVisible] = useState(false);
 
         {/* Review */}
         <View style={styles.review}>
-          <ReviewProduct reviewCount={totalReviews || 0} />
+          <ReviewProduct 
+            reviewCount={totalReviews} 
+            reviews={reviews}
+          />
         </View>
       </ScrollView>
 
