@@ -1,23 +1,22 @@
 import React, { useState } from "react";
-import { View, Text, TouchableOpacity, Image, StyleSheet, Dimensions } from "react-native";
+import { View, Text, TouchableOpacity, Image, StyleSheet, Dimensions, ScrollView } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Im_URL } from "../../api";
 
 const { width, height } = Dimensions.get("window");
 
-
 function formatNumber(value: number): string {
-    if (value >= 1_000_000) {
-      const millions = (value / 1_000_000).toFixed(1); // Lấy 1 số thập phân
-      return `${millions}m`;
-    } else if (value >= 1_000) {
-      const thousands = (value / 1_000).toFixed(1);   // Lấy 1 số thập phân
-      return `${thousands}k`;
-    } else {
-      // Nếu nhỏ hơn 1.000, trả về dạng nguyên gốc
-      return value.toString();
-    }
+  if (value >= 1_000_000) {
+    const millions = (value / 1_000_000).toFixed(1);
+    return `${millions}m`;
+  } else if (value >= 1_000) {
+    const thousands = (value / 1_000).toFixed(1);
+    return `${thousands}k`;
+  } else {
+    return value.toString();
   }
+}
+
 interface ReviewProductProps {
   reviewCount: number;
   reviews?: Array<{
@@ -47,6 +46,39 @@ const ReviewProduct: React.FC<ReviewProductProps> = ({
     }
   };
 
+  const renderStars = (rating: number) => (
+    <View style={styles.ratingContainer}>
+      {[1, 2, 3, 4, 5].map((star) => (
+        <Ionicons
+          key={star}
+          name={star <= rating ? "star" : "star-outline"}
+          size={16}
+          color={star <= rating ? "#FFD700" : "#ccc"}
+        />
+      ))}
+    </View>
+  );
+
+  const renderReview = (review: any, index: number) => (
+    <View key={index} style={styles.reviewItem}>
+      <View style={styles.userInfo}>
+        <Image 
+          source={review.user.avatar ? { uri: Im_URL + review.user.avatar } : require("../../assets/images/avatar.png")} 
+          style={styles.avatar}
+        />
+        <View style={styles.userDetails}>
+          <Text style={styles.userName}>{review.user.name}</Text>
+          <Text style={styles.variant}>{review.product_variant}</Text>
+        </View>
+      </View>
+      {renderStars(review.star)}
+      {review.content && (
+        <Text style={styles.comment}>{review.content}</Text>
+      )}
+      <Text style={styles.date}>{review.createdAt}</Text>
+    </View>
+  );
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -54,69 +86,25 @@ const ReviewProduct: React.FC<ReviewProductProps> = ({
         <Text style={styles.count}>({formatNumber(reviewCount)})</Text>
       </View>
       
-      {reviews.length > 0 && (
-        <>
-          <View style={styles.reviewItem}>
-            <View style={styles.userInfo}>
-              <Image 
-                source={reviews[0].user.avatar ? { uri: Im_URL + reviews[0].user.avatar } : require("../../assets/images/avatar.png")} 
-                style={styles.avatar}
-              />
-              <View>
-                <Text style={styles.userName}>{reviews[0].user.name}</Text>
-                <Text style={styles.variant}>{reviews[0].product_variant}</Text>
-              </View>
-            </View>
-            <View style={styles.ratingContainer}>
-              {[1, 2, 3, 4, 5].map((star) => (
-                <Ionicons
-                  key={star}
-                  name={star <= reviews[0].star ? "star" : "star-outline"}
-                  size={16}
-                  color={star <= reviews[0].star ? "#FFD700" : "#ccc"}
-                />
-              ))}
-            </View>
-            {reviews[0].content && (
-              <Text style={styles.comment}>{reviews[0].content}</Text>
-            )}
-            <Text style={styles.date}>{reviews[0].createdAt}</Text>
-          </View>
-
-          {showAllReviews && reviews.slice(1).map((review, index) => (
-            <View key={index} style={styles.reviewItem}>
-              <View style={styles.userInfo}>
-                <Image 
-                  source={review.user.avatar ? { uri: Im_URL + review.user.avatar } : require("../../assets/images/avatar.png")} 
-                  style={styles.avatar}
-                />
-                <View>
-                  <Text style={styles.userName}>{review.user.name}</Text>
-                  <Text style={styles.variant}>{review.product_variant}</Text>
-                </View>
-              </View>
-              <View style={styles.ratingContainer}>
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <Ionicons
-                    key={star}
-                    name={star <= review.star ? "star" : "star-outline"}
-                    size={16}
-                    color={star <= review.star ? "#FFD700" : "#ccc"}
-                  />
-                ))}
-              </View>
-              {review.content && (
-                <Text style={styles.comment}>{review.content}</Text>
-              )}
-              <Text style={styles.date}>{review.createdAt}</Text>
-            </View>
-          ))}
-        </>
+      {reviews.length > 0 ? (
+        <ScrollView style={styles.reviewsContainer}>
+          {renderReview(reviews[0], 0)}
+          
+          {showAllReviews && reviews.slice(1).map((review, index) => 
+            renderReview(review, index + 1)
+          )}
+        </ScrollView>
+      ) : (
+        <View style={styles.noReviews}>
+          <Text style={styles.noReviewsText}>Chưa có đánh giá nào</Text>
+        </View>
       )}
 
       {reviews.length > 1 && !showAllReviews && (
-        <TouchableOpacity style={styles.vote_icon} onPress={handleSeeMore}>
-          <Text style={styles.voteicon_text}>Xem thêm {reviews.length - 1} đánh giá &gt;</Text>
+        <TouchableOpacity style={styles.seeMoreButton} onPress={handleSeeMore}>
+          <Text style={styles.seeMoreText}>
+            Xem thêm {reviews.length - 1} đánh giá &gt;
+          </Text>
         </TouchableOpacity>
       )}
     </View>
@@ -150,6 +138,9 @@ const styles = StyleSheet.create({
     color: '#666',
     marginLeft: 8,
   },
+  reviewsContainer: {
+    maxHeight: 400,
+  },
   reviewItem: {
     marginBottom: 20,
     paddingBottom: 20,
@@ -167,6 +158,9 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     marginRight: 12,
     backgroundColor: '#f5f5f5',
+  },
+  userDetails: {
+    flex: 1,
   },
   userName: {
     fontSize: 15,
@@ -192,21 +186,23 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#999',
   },
-  vote_icon: {
-    flexDirection: 'row',
+  seeMoreButton: {
     alignItems: 'center',
-    justifyContent: 'center',
     marginTop: 8,
   },
-  voteicon_text: {
+  seeMoreText: {
     fontSize: 14,
     color: '#FF6B00',
     fontWeight: '500',
     padding: 8,
   },
-  voteicon_icon: {
-    width: width * 0.04,
-    height: height * 0.025,
-    resizeMode: 'contain',
+  noReviews: {
+    padding: 20,
+    alignItems: 'center',
+  },
+  noReviewsText: {
+    fontSize: 14,
+    color: '#666',
+    fontStyle: 'italic',
   },
 });
