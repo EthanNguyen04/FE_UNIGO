@@ -174,7 +174,7 @@ const OrderScreen: React.FC = () => {
       if (!payRes.ok || payData.code !== "00") {
         throw new Error(payData.message || "Lỗi tạo giao dịch thanh toán");
       }
-      console.log("pay" +payData.data)
+      console.log("pay" + payData.data)
 
       // 4) Điều hướng sang PaymentScreen
       router.replace({
@@ -205,30 +205,6 @@ const OrderScreen: React.FC = () => {
           ItemSeparatorComponent={() => <View style={styles.separator} />}
         />
       )}
-
-      {/* Tổng giá */}
-      <View style={styles.priceBox}>
-        <Text style={styles.text}>
-          Tổng:{" "}
-          {totalPrice.toLocaleString("vi-VN", {
-            style: "currency",
-            currency: "VND",
-          })}
-        </Text>
-        {selectedDiscount && (
-          <Text style={styles.text}>
-            Giảm {selectedDiscount.discount_percent}%:{" "}
-            -{discountAmount.toLocaleString("vi-VN")}₫
-          </Text>
-        )}
-        <Text style={styles.textBold}>
-          Thanh toán:{" "}
-          {finalTotal.toLocaleString("vi-VN", {
-            style: "currency",
-            currency: "VND",
-          })}
-        </Text>
-      </View>
 
       <DiscountSelector
         discountCode={selectedDiscount?.code}
@@ -287,6 +263,30 @@ const OrderScreen: React.FC = () => {
         </View>
       </Modal>
 
+      {/* Tổng giá */}
+      <View style={styles.priceBox}>
+        <Text style={styles.text}>
+         Tạm tính:{" "}
+          {totalPrice.toLocaleString("vi-VN", {
+            style: "currency",
+            currency: "VND",
+          })}
+        </Text>
+        {selectedDiscount && (
+          <Text style={styles.text}>
+            Giảm {selectedDiscount.discount_percent}%:{" "}
+            -{discountAmount.toLocaleString("vi-VN")}₫
+          </Text>
+        )}
+        <Text style={styles.textBold}>
+          Thanh toán:{" "}
+          {finalTotal.toLocaleString("vi-VN", {
+            style: "currency",
+            currency: "VND",
+          })}
+        </Text>
+      </View>
+
       <View style={styles.footer}>
         <TouchableOpacity
           style={[
@@ -306,40 +306,141 @@ const OrderScreen: React.FC = () => {
 export default OrderScreen;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#f0f0f0" },
-  loader: { flex: 1, justifyContent: "center", alignItems: "center" },
-  separator: { height: 1, backgroundColor: "#ddd", marginVertical: 4 },
+  container: {
+    flex: 1,
+    backgroundColor: "#FAFAFA",
+  },
+  loader: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  separator: {
+    height: 1,
+    backgroundColor: "#E0E0E0",
+    marginVertical: 4,
+  },
   priceBox: {
     backgroundColor: "#fff",
-    padding: 12,
-    borderBottomWidth: 1,
-    borderColor: "#eee",
+    padding: 16,
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: -3 },
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    elevation: 6,
   },
-  text: { fontSize: 14, color: "#333", marginVertical: 2 },
-  textBold: { fontSize: 16, color: "#FF6600", fontWeight: "bold" },
-  footer: { padding: 12, backgroundColor: "#fff" },
-  payBtn: { backgroundColor: "#FF6600", padding: 12, borderRadius: 6 },
-  disabledBtn: { backgroundColor: "#ccc" },
-  payText: { color: "#fff", textAlign: "center", fontSize: 16 },
+  text: {
+    fontSize: 15,
+    color: "#555",
+    marginVertical: 2,
+  },
+  textBold: {
+    fontSize: 17,
+    color: "rgb(255, 0, 0)",
+    fontWeight: "700",
+    marginTop: 6,
+  },
+  footer: {
+    padding: 16,
+    backgroundColor: "#fff",
+    borderTopWidth: 1,
+    borderColor: "#eee",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: -3 },
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    elevation: 6,
+  },
+  payBtn: {
+    backgroundColor: "#FF6B3C",
+    paddingVertical: 14,
+    borderRadius: 16,
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#FF6B3C",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 6,
+  },
+  disabledBtn: {
+    backgroundColor: "#CFCFCF",
+    shadowOpacity: 0,
+  },
+  payText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "700",
+    letterSpacing: 0.3,
+  },
   modalOverlay: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.5)",
+    backgroundColor: "rgba(0,0,0,0.45)",
     justifyContent: "center",
     alignItems: "center",
   },
   modalContent: {
-    width: "80%",
+    width: "90%",
     backgroundColor: "#fff",
-    borderRadius: 8,
-    padding: 16,
+    borderRadius: 20,
+    padding: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.2,
+    shadowRadius: 10,
+    elevation: 10,
   },
-  modalTitle: { fontSize: 18, fontWeight: "bold", marginBottom: 12 },
-  modalItem: { padding: 12, borderRadius: 4 },
-  selectedItem: { backgroundColor: "#FFEBE6", borderWidth: 1, borderColor: "#FF6600" },
-  modalCode: { fontSize: 16, fontWeight: "bold" },
-  modalPercent: { fontSize: 14, color: "#FF6600", marginTop: 4 },
-  modalMinValue: { fontSize: 12, color: "#666", marginTop: 2 },
-  line: { height: 1, backgroundColor: "#ddd" },
-  closeBtn: { marginTop: 12, alignSelf: "center" },
-  closeText: { color: "#FF6600", fontSize: 16 },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#2E2E2E",
+    marginBottom: 16,
+    textAlign: "center",
+  },
+  modalItem: {
+    padding: 14,
+    borderRadius: 14,
+    backgroundColor: "#F9F9F9",
+  },
+  selectedItem: {
+    backgroundColor: "#FFF2EC",
+    borderColor: "#FF6B3C",
+    borderWidth: 1.5,
+  },
+  modalCode: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#333",
+  },
+  modalPercent: {
+    fontSize: 14,
+    color: "#FF6B3C",
+    marginTop: 6,
+  },
+  modalMinValue: {
+    fontSize: 13,
+    color: "#888",
+    marginTop: 4,
+  },
+  line: {
+    height: 1,
+    backgroundColor: "#eee",
+    marginVertical: 8,
+  },
+  closeBtn: {
+    marginTop: 18,
+    alignSelf: "center",
+    paddingVertical: 10,
+    paddingHorizontal: 26,
+    backgroundColor: "#FF6B3C",
+    borderRadius: 20,
+    elevation: 2,
+  },
+  closeText: {
+    color: "#fff",
+    fontSize: 15,
+    fontWeight: "600",
+  },
 });

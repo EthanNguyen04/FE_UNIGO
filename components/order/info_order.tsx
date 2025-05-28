@@ -30,7 +30,7 @@ const DeliveryInfo: React.FC<DeliveryInfoProps> = ({
 
       {/* Tên khách hàng & SĐT  */}
       <View style={styles.row}>
-        <Text style={styles.phoneNumber}>{phoneNumber}</Text>
+        <Text style={styles.phoneNumber}>SDT: {phoneNumber}</Text>
         <TouchableOpacity style={styles.editButton}>
           <Ionicons name="pencil-outline" size={18} color="#666" />
         </TouchableOpacity>
@@ -38,7 +38,7 @@ const DeliveryInfo: React.FC<DeliveryInfoProps> = ({
 
       {/* Địa chỉ hoặc placeholder */}
       <Text style={[styles.address, !hasAddress && styles.placeholderText]}>
-        {hasAddress ? address : "Hãy chọn địa chỉ nhận hàng"}
+        Địa chỉ: {hasAddress ? address : "Hãy chọn địa chỉ nhận hàng"}
       </Text>
     </TouchableOpacity>
   );

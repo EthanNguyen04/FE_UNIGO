@@ -55,7 +55,6 @@ interface ProductFooterProps {
     productId: string
   ) => void;
   onFavoritePress?: (nextValue: boolean) => void;
-
 }
 
 const formatPrice = (price: number): string =>
@@ -65,25 +64,25 @@ const formatPrice = (price: number): string =>
     maximumFractionDigits: 0,
   }).format(price);
 
-  const ProductFooter: React.FC<ProductFooterProps> = ({
-    setIsFavorite,
-    modalVisible,
-    setModalVisible,
-    selectedAction,
-    setSelectedAction,
-    selectedColor,
-    setSelectedColor,
-    selectedSize,
-    setSelectedSize,
-    quantity,
-    setQuantity,
-    colors = [],
-    sizes = [],
-    variants,
-    productId,
-    onConfirmAction,
-    onFavoritePress,
-  }) => {
+const ProductFooter: React.FC<ProductFooterProps> = ({
+  setIsFavorite,
+  modalVisible,
+  setModalVisible,
+  selectedAction,
+  setSelectedAction,
+  selectedColor,
+  setSelectedColor,
+  selectedSize,
+  setSelectedSize,
+  quantity,
+  setQuantity,
+  colors = [],
+  sizes = [],
+  variants,
+  productId,
+  onConfirmAction,
+  onFavoritePress,
+}) => {
   const [userType, setUserType] = useState<string | null>(null);
 
   useEffect(() => {
@@ -189,8 +188,8 @@ const formatPrice = (price: number): string =>
       <View style={styles.divider} />
 
       <TouchableOpacity style={styles.cart} onPress={() => openModal("cart")}>
-        <FontAwesome name="shopping-basket" size={20} color="#ff9800" />
-        <Text style={styles.text}>{"Thêm vào\nGiỏ hàng"}</Text>
+        <FontAwesome name="shopping-basket" size={20} color="#008080" />
+        <Text style={styles.text}>{"Thêm vào Giỏ hàng"}</Text>
       </TouchableOpacity>
 
       <View style={styles.divider} />
@@ -201,15 +200,17 @@ const formatPrice = (price: number): string =>
       </TouchableOpacity>
 
       <Modal animationType="slide" transparent visible={modalVisible}>
-        <View style={styles.modal_product}>
-          <View style={styles.modalContent}>
-            <TouchableOpacity style={styles.closeButton} onPress={closeModal}>
-              <Text style={styles.closeText}>X</Text>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            {/* Close button */}
+            <TouchableOpacity style={styles.modalCloseBtn} onPress={closeModal}>
+              <AntDesign name="closecircle" size={24} color="#888" />
             </TouchableOpacity>
 
-            <View style={styles.modalBody}>
-              <Text style={styles.modalTitle}>Size</Text>
-              <View style={styles.option_product}>
+            <View style={styles.modalSection}>
+              {/* Size selection */}
+              <Text style={styles.modalLabel}>Chọn Size</Text>
+              <View style={styles.modalOptions}>
                 {sizes.map(size => {
                   const disabled = selectedColor
                     ? !variants.some(v => v.color === selectedColor && v.size === size)
@@ -218,21 +219,30 @@ const formatPrice = (price: number): string =>
                     <TouchableOpacity
                       key={size}
                       style={[
-                        styles.optionButton,
-                        selectedSize === size && styles.selectedOption,
-                        disabled && styles.disabledOption,
+                        styles.optionBtn,
+                        selectedSize === size && styles.optionSelected,
+                        disabled && styles.optionDisabled,
                       ]}
                       onPress={onSizePress(size)}
                       disabled={disabled}
                     >
-                      <Text style={styles.optionText}>{size}</Text>
+                      <Text
+                        style={[
+                          styles.optionText,
+                          selectedSize === size && styles.optionTextSelected,
+                          disabled && styles.optionTextDisabled,
+                        ]}
+                      >
+                        {size}
+                      </Text>
                     </TouchableOpacity>
                   );
                 })}
               </View>
 
-              <Text style={styles.modalTitle}>Màu sắc</Text>
-              <View style={styles.option_product}>
+              {/* Color selection */}
+              <Text style={styles.modalLabel}>Chọn Màu</Text>
+              <View style={styles.modalOptions}>
                 {colors.map(color => {
                   const disabled = selectedSize
                     ? !variants.some(v => v.size === selectedSize && v.color === color)
@@ -241,82 +251,79 @@ const formatPrice = (price: number): string =>
                     <TouchableOpacity
                       key={color}
                       style={[
-                        styles.optionButton,
-                        selectedColor === color && styles.selectedOption,
-                        disabled && styles.disabledOption,
+                        styles.optionBtn,
+                        selectedColor === color && styles.optionSelected,
+                        disabled && styles.optionDisabled,
                       ]}
                       onPress={onColorPress(color)}
                       disabled={disabled}
                     >
-                      <Text style={styles.optionText}>{color}</Text>
+                      <Text
+                        style={[
+                          styles.optionText,
+                          selectedColor === color && styles.optionTextSelected,
+                          disabled && styles.optionTextDisabled,
+                        ]}
+                      >
+                        {color}
+                      </Text>
                     </TouchableOpacity>
                   );
                 })}
               </View>
 
-              <View style={styles.infoContainer}>
+              {/* Variant info */}
+              <View style={styles.modalInfoRow}>
                 {selectedVariant ? (
                   <>
-                    <Text style={[styles.infoText, styles.priceText]}>
+                    <Text style={styles.priceText}>
                       {formatPrice(selectedVariant.price)}
                     </Text>
-                    <Text style={styles.infoText}>
-                      Kho: {selectedVariant.quantity}
-                    </Text>
+                    <Text style={styles.stockText}>Kho: {selectedVariant.quantity}</Text>
                   </>
                 ) : (
-                  <Text style={styles.infoText}>
-                    Vui lòng chọn đầy đủ size và màu
-                  </Text>
+                  <Text style={styles.stockText}>Vui lòng chọn đầy đủ size và màu</Text>
                 )}
               </View>
 
+              {/* Quantity */}
               {selectedVariant && (
-                <View style={styles.cart_icon}>
-                  <Text style={styles.modalTitle_product}>Số lượng</Text>
-                  <View style={styles.quantity_product}>
-                    <TouchableOpacity
-                      style={styles.quantityButton}
-                      onPress={decrementQuantity}
-                    >
-                      <Text style={styles.quantityText}>-</Text>
+                <View style={styles.quantityRow}>
+                  <Text style={styles.modalLabel}>Số lượng</Text>
+                  <View style={styles.quantityControl}>
+                    <TouchableOpacity onPress={decrementQuantity} style={styles.quantityBtn}>
+                      <Text style={styles.quantitySymbol}>−</Text>
                     </TouchableOpacity>
-                    <Text style={styles.quantityNumber}>{quantity}</Text>
-                    <TouchableOpacity
-                      style={styles.quantityButton}
-                      onPress={incrementQuantity}
-                    >
-                      <Text style={styles.quantityText}>+</Text>
+                    <Text style={styles.quantityValue}>{quantity}</Text>
+                    <TouchableOpacity onPress={incrementQuantity} style={styles.quantityBtn}>
+                      <Text style={styles.quantitySymbol}>+</Text>
                     </TouchableOpacity>
                   </View>
                 </View>
               )}
             </View>
 
-            {userType === "khach" ? (
-              <TouchableOpacity
-                style={styles.loginbtn}
-                onPress={() => alert("Vui lòng đăng nhập để mua hàng")}
-              >
-                <Text style={styles.buyText}>Đăng nhập để mua</Text>
-              </TouchableOpacity>
-            ) : (
-              <TouchableOpacity
-                style={styles.buyNow_modal}
-                onPress={handleConfirm}
-              >
-                <Image
-                  source={
-                    selectedAction === "cart" ? icons.addcart : icons.buy
-                  }
-                  style={styles.cartIcon}
-                  contentFit="contain"
-                />
-                <Text style={styles.buyText}>
-                  {selectedAction === "cart" ? "Thêm vào giỏ" : "Mua ngay"}
-                </Text>
-              </TouchableOpacity>
-            )}
+            {/* Confirm button */}
+            <TouchableOpacity
+              style={[
+                styles.confirmBtn,
+                userType === "khach" && { backgroundColor: "#aaa" },
+              ]}
+              onPress={
+                userType === "khach"
+                  ? () => alert("Vui lòng đăng nhập để mua hàng")
+                  : handleConfirm
+              }
+            >
+              <Image
+                source={selectedAction === "cart" ? icons.addcart : icons.buy}
+                style={styles.cartIcon}
+                contentFit="contain"
+              />
+              <Text style={styles.confirmText}>
+                {selectedAction === "cart" ? "Thêm vào giỏ" : "Mua ngay"}
+              </Text>
+            </TouchableOpacity>
           </View>
         </View>
       </Modal>
@@ -349,7 +356,7 @@ const styles = StyleSheet.create({
     width: width * 0.45,
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#ff9800",
+    backgroundColor: "rgba(255, 94, 0, 0.84)",
     margin: width * 0.025,
     borderRadius: 10,
   },
@@ -366,118 +373,121 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "#fff",
   },
-  buyNow_modal: {
-    width: width * 0.5,
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#ff9800",
-    borderRadius: 10,
-    alignSelf: "flex-end",
-    justifyContent: "flex-start",
-  },
-  loginbtn: {
-    width: width * 0.5,
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#AEAEAE",
-    borderRadius: 10,
-    alignSelf: "flex-end",
-    justifyContent: "center",
-    paddingVertical: 10,
-  },
-  modal_product: {
+  modalOverlay: {
     flex: 1,
     justifyContent: "flex-end",
-    backgroundColor: "rgba(0,0,0,0.5)",
+    backgroundColor: "rgba(0, 0, 0, 0.4)",
   },
-  modalContent: {
-    width: width * 0.99,
-    height: height * 0.58,
+  modalContainer: {
     backgroundColor: "#fff",
-    padding: width * 0.04,
-    borderRadius: width * 0.02,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    padding: 20,
+    paddingBottom: 30,
   },
-  modalBody: { flex: 1 },
-  closeButton: {
+  modalCloseBtn: {
     position: "absolute",
     top: 10,
     right: 10,
     zIndex: 10,
-    width: width * 0.09,
-    height: width * 0.09,
-    justifyContent: "center",
-    alignItems: "center",
   },
-  closeText: { fontSize: 15, color: "#AEAEAE" },
-  modalTitle: {
-    fontSize: width * 0.04,
+  modalSection: {
+    marginTop: 30,
+  },
+  modalLabel: {
+    fontSize: 16,
     fontWeight: "bold",
-    marginBottom: height * 0.015,
-  },
-  modalTitle_product: {
-    fontSize: width * 0.04,
-    fontWeight: "bold",
-    width: width * 0.4,
-  },
-  option_product: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    marginBottom: height * 0.02,
-  },
-  optionButton: {
-    padding: width * 0.02,
-    backgroundColor: "#ddd",
-    borderRadius: width * 0.01,
-    marginRight: width * 0.02,
     marginBottom: 10,
   },
-  selectedOption: {
-    backgroundColor: "#ff9800",
+  modalOptions: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    marginBottom: 20,
   },
-  disabledOption: {
-    opacity: 0.5,
+  optionBtn: {
+    paddingVertical: 4,
+    paddingHorizontal: 16,
+    backgroundColor: "rgba(185, 185, 185, 0.77)",
+    borderRadius: 10,
+    marginRight: 10,
+    marginBottom: 10,
+  },
+  optionSelected: {
+    backgroundColor: "#007bff",
+  },
+  optionDisabled: {
+    backgroundColor: "#ddd",
   },
   optionText: {
-    fontSize: width * 0.026,
+    fontSize: 14,
+    color: "rgba(0, 0, 0, 0.84)",
   },
-  infoContainer: {
-    marginVertical: height * 0.015,
+  optionTextSelected: {
+    color: "#fff",
+    fontWeight: "bold",
   },
-  infoText: {
-    fontSize: width * 0.04,
+  optionTextDisabled: {
+    color: "#999",
+  },
+  modalInfoRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 20,
   },
   priceText: {
-    color: "#ff9800",
     fontSize: 15,
+    fontWeight: "bold",
+    color: "rgba(255, 50, 50, 0.84)",
   },
-  cart_icon: {
+  stockText: {
+    fontSize: 14,
+    color: "#666",
+  },
+  quantityRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 20,
+  },
+  quantityControl: {
     flexDirection: "row",
     alignItems: "center",
   },
-  quantity_product: {
+  quantityBtn: {
+    backgroundColor: "rgba(92, 92, 92, 0.7)",
+    paddingHorizontal: 15,
+    paddingVertical: 5,
+    borderRadius: 8,
+  },
+  quantitySymbol: {
+    color: "#fff",
+    fontSize: 10,
+    fontWeight: "bold",
+  },
+  quantityValue: {
+    marginHorizontal: 15,
+    fontSize: 15,
+    fontWeight: "bold",
+  },
+  confirmBtn: {
     flexDirection: "row",
+    backgroundColor: "rgba(255, 94, 0, 0.84)",
+    // paddingVertical: 10,
+    width: width * 0.46,
+    borderRadius: 5,
     alignItems: "center",
-    marginLeft: width * 0.25,
+    justifyContent: "center",
+    marginLeft: width * 0.46
   },
-  quantityButton: {
-    borderWidth: 1,
-    borderColor: "#ddd",
-    padding: width * 0.025,
-    borderRadius: width * 0.011,
-    marginHorizontal: width * 0.025,
-  },
-  quantityText: {
-    fontSize: width * 0.035,
+  confirmText: {
+    fontSize: 15,
     fontWeight: "bold",
-  },
-  quantityNumber: {
-    fontSize: width * 0.035,
-    fontWeight: "bold",
+    color: "#fff",
   },
   text: {
-    marginLeft: width * 0.02,
-    fontSize: width * 0.025,
-    color: "#000",
+    fontSize: 10,
     textAlign: "center",
+    color: "#444",
+    marginTop: 2,
   },
 });

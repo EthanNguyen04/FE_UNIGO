@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -10,9 +10,11 @@ import {
   Alert,
   ActivityIndicator,
   RefreshControl,
+  Animated,
 } from "react-native";
 import { useRouter, useFocusEffect } from "expo-router";
 import { Image } from "expo-image";
+import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import CardviewProductSuggest from "../../components/home/CardviewProductSuggest";
 import CardviewProductSale from "../../components/home/CardviewProductSale";
 import FixedHeader from "@/components/custom/FixedHeader";
@@ -28,6 +30,156 @@ interface Product {
   discount_price: number;
   discount: number;
 }
+
+// Component Skeleton cho sản phẩm sale (horizontal)
+const ProductSaleSkeleton = () => {
+  const fadeAnim = useRef(new Animated.Value(0.3)).current;
+
+  useEffect(() => {
+    const animate = () => {
+      Animated.sequence([
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 800,
+          useNativeDriver: true,
+        }),
+        Animated.timing(fadeAnim, {
+          toValue: 0.3,
+          duration: 800,
+          useNativeDriver: true,
+        }),
+      ]).start(() => animate());
+    };
+    animate();
+  }, [fadeAnim]);
+
+  return (
+    <View style={styles.saleSkeletonContainer}>
+      {[1, 2, 3].map((item) => (
+        <Animated.View
+          key={item}
+          style={[styles.saleSkeletonItem, { opacity: fadeAnim }]}
+        >
+          <View style={styles.skeletonImage} />
+          <View style={styles.skeletonTextContainer}>
+            <View style={styles.skeletonTextLong} />
+            <View style={styles.skeletonTextShort} />
+            <View style={styles.skeletonPrice} />
+          </View>
+        </Animated.View>
+      ))}
+    </View>
+  );
+};
+
+// Component Skeleton cho sản phẩm đề xuất (grid)
+const ProductSuggestSkeleton = () => {
+  const fadeAnim = useRef(new Animated.Value(0.3)).current;
+
+  useEffect(() => {
+    const animate = () => {
+      Animated.sequence([
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(fadeAnim, {
+          toValue: 0.3,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+      ]).start(() => animate());
+    };
+    animate();
+  }, [fadeAnim]);
+
+  return (
+    <View style={styles.suggestSkeletonContainer}>
+      {[1, 2, 3, 4, 5, 6].map((item) => (
+        <Animated.View
+          key={item}
+          style={[styles.suggestSkeletonItem, { opacity: fadeAnim }]}
+        >
+          <View style={styles.skeletonImageSquare} />
+          <View style={styles.skeletonTextContainer}>
+            <View style={styles.skeletonTextMedium} />
+            <View style={styles.skeletonTextShort} />
+            <View style={styles.skeletonPriceSmall} />
+          </View>
+        </Animated.View>
+      ))}
+    </View>
+  );
+};
+
+// Component Loading chính với icon và text đẹp
+const EnhancedLoading = ({ type = "sale", message = "Đang tải..." }) => {
+  const spinValue = useRef(new Animated.Value(0)).current;
+  const scaleValue = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    // Animation xoay
+    const spin = Animated.loop(
+      Animated.timing(spinValue, {
+        toValue: 1,
+        duration: 2000,
+        useNativeDriver: true,
+      })
+    );
+
+    // Animation scale
+    const scale = Animated.loop(
+      Animated.sequence([
+        Animated.timing(scaleValue, {
+          toValue: 1.1,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(scaleValue, {
+          toValue: 1,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+      ])
+    );
+
+    spin.start();
+    scale.start();
+
+    return () => {
+      spin.stop();
+      scale.stop();
+    };
+  }, [spinValue, scaleValue]);
+
+  const spinInterpolate = spinValue.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '360deg'],
+  });
+
+  return (
+    <View style={styles.loadingContainer}>
+      <Animated.View
+        style={[
+          styles.loadingIcon,
+          {
+            transform: [
+              { rotate: spinInterpolate },
+              { scale: scaleValue },
+            ],
+          },
+        ]}
+      >
+        <View style={styles.loadingCircle}>
+          <View style={styles.loadingInnerCircle} />
+        </View>
+      </Animated.View>
+      <Text style={styles.loadingText}>{message}</Text>
+      {type === "sale" ? <ProductSaleSkeleton /> : <ProductSuggestSkeleton />}
+    </View>
+  );
+};
 
 export default function HomeScreen() {
   const [productsSale, setProductsSale] = useState<Product[]>([]);
@@ -111,12 +263,12 @@ export default function HomeScreen() {
               contentFit="contain"
             />
             <TouchableOpacity onPress={() => router.push("/flash_sale_screen")}>
-              <Text style={styles.textSale}>Xem {">"}</Text>
+              <Text style={styles.textSale}>Xem thêm {">"}</Text>
             </TouchableOpacity>
           </View>
 
           {isLoading ? (
-            <Text style={styles.loadingText}>Đang tải sản phẩm...</Text>
+            <EnhancedLoading type="sale" message="Đang tải sản phẩm giảm giá..." />
           ) : (
             <FlatList
               horizontal
@@ -151,17 +303,25 @@ export default function HomeScreen() {
 
         {/* Đề xuất */}
         <View style={styles.dxHeader}>
-          <Text style={styles.textDexuat}>Đề xuất</Text>
+          <View style={styles.titleContainer}>
+            <Text style={styles.textDexuat}>Đề xuất</Text>
+            <MaterialIcons
+              name="stars" 
+              size={17}
+              color="rgb(255, 0, 166)"
+              style={{ marginLeft: 6 }}
+            />
+          </View>
           <TouchableOpacity onPress={() => router.push("/listProduct")}>
-            <Text style={styles.textSale}>Xem {">"}</Text>
+            <Text style={styles.textSale}>Xem thêm {">"}</Text>
           </TouchableOpacity>
         </View>
 
         {isLoading ? (
-          <Text style={styles.loadingText}>Đang tải đề xuất...</Text>
+          <EnhancedLoading type="suggest" message="Đang tải sản phẩm đề xuất..." />
         ) : (
           <FlatList
-            data={productsSuggest}
+            data={productsSuggest.slice(0, 10)}
             keyExtractor={(item) => item.id}
             numColumns={2}
             columnWrapperStyle={styles.columnWrapper}
@@ -214,26 +374,128 @@ const styles = StyleSheet.create({
   },
   textDexuat: {
     marginLeft: 10,
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: "bold",
-    color: "#FF8000",
+    color: "rgb(255, 0, 166)",
   },
   textSale: {
     marginRight: 30,
-    color: "#FF8000",
+    color: "rgba(4, 84, 126, 0.8)",
     padding: 10,
+    fontSize: 10
   },
-  columnWrapper: { justifyContent: "space-between" },
+  columnWrapper: { justifyContent: "space-between", margin: 5},
   divider: {
     width: screenWidth * 0.95,
     height: 1,
     backgroundColor: "#cacaca",
     marginHorizontal: screenWidth * 0.01,
   },
+  titleContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+
+  // Enhanced Loading Styles
+  loadingContainer: {
+    alignItems: "center",
+    paddingVertical: 20,
+  },
+  loadingIcon: {
+    marginBottom: 10,
+  },
+  loadingCircle: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    borderWidth: 3,
+    borderColor: "#FF8000",
+    borderTopColor: "transparent",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  loadingInnerCircle: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: "rgba(255, 128, 0, 0.3)",
+  },
   loadingText: {
-    textAlign: "center",
-    fontSize: 16,
+    fontSize: 14,
     color: "#FF8000",
-    marginVertical: 10,
+    fontWeight: "500",
+    marginBottom: 15,
+  },
+  
+  // Skeleton styles for sale products
+  saleSkeletonContainer: {
+    flexDirection: "row",
+    paddingHorizontal: 10,
+  },
+  saleSkeletonItem: {
+    width: 140,
+    marginRight: 10,
+    backgroundColor: "#f0f0f0",
+    borderRadius: 8,
+    overflow: "hidden",
+  },
+  skeletonImage: {
+    width: "100%",
+    height: 100,
+    backgroundColor: "#e0e0e0",
+  },
+  skeletonTextContainer: {
+    padding: 8,
+  },
+  skeletonTextLong: {
+    height: 12,
+    backgroundColor: "#e0e0e0",
+    borderRadius: 4,
+    marginBottom: 6,
+  },
+  skeletonTextShort: {
+    height: 10,
+    width: "70%",
+    backgroundColor: "#e0e0e0",
+    borderRadius: 4,
+    marginBottom: 6,
+  },
+  skeletonPrice: {
+    height: 14,
+    width: "50%",
+    backgroundColor: "#d0d0d0",
+    borderRadius: 4,
+  },
+
+  // Skeleton styles for suggest products
+  suggestSkeletonContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
+    paddingHorizontal: 10,
+  },
+  suggestSkeletonItem: {
+    width: (screenWidth - 30) / 2,
+    marginBottom: 10,
+    backgroundColor: "#f0f0f0",
+    borderRadius: 8,
+    overflow: "hidden",
+  },
+  skeletonImageSquare: {
+    width: "100%",
+    height: 120,
+    backgroundColor: "#e0e0e0",
+  },
+  skeletonTextMedium: {
+    height: 12,
+    backgroundColor: "#e0e0e0",
+    borderRadius: 4,
+    marginBottom: 6,
+  },
+  skeletonPriceSmall: {
+    height: 12,
+    width: "60%",
+    backgroundColor: "#d0d0d0",
+    borderRadius: 4,
   },
 });

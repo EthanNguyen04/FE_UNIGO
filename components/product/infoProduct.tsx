@@ -2,29 +2,21 @@ import React from "react";
 import { View, Text, StyleSheet, Dimensions } from "react-native";
 import { AntDesign } from "@expo/vector-icons";
 
-// Lấy kích thước màn hình
-const { width, height } = Dimensions.get("window");
+const { width } = Dimensions.get("window");
 
 interface ProductInfoProps {
-  productName: string;      // Tên sản phẩm
-  priceText: number;        // Giá chính
-  priceDiscount: number;    // Giá gốc (đã giảm)
-  evaluate: number;         // Điểm đánh giá
-  sold: number;             // Số lượng đã bán
-  inStock: number;          // Số lượng tồn kho
+  productName: string;
+  priceText: number;
+  priceDiscount: number;
+  evaluate: number;
+  sold: number;
+  inStock: number;
 }
 
 function formatNumber(value: number): string {
-  if (value >= 1_000_000) {
-    const millions = (value / 1_000_000).toFixed(1); // Lấy 1 số thập phân
-    return `${millions}m`;
-  } else if (value >= 1_000) {
-    const thousands = (value / 1_000).toFixed(1);   // Lấy 1 số thập phân
-    return `${thousands}k`;
-  } else {
-    // Nếu nhỏ hơn 1.000, trả về dạng nguyên gốc
-    return value.toString();
-  }
+  if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1)}m`;
+  if (value >= 1_000) return `${(value / 1_000).toFixed(1)}k`;
+  return value.toString();
 }
 
 const ProductInfo: React.FC<ProductInfoProps> = ({
@@ -32,50 +24,47 @@ const ProductInfo: React.FC<ProductInfoProps> = ({
   priceText,
   priceDiscount,
   evaluate,
-  sold = 0,      // nếu undefined => 0
-  inStock = 0,   // nếu undefined => 0
+  sold = 0,
+  inStock = 0,
 }) => {
-
-  const formatPrice = (price: number) => {
-    // Kiểm tra nếu giá trị price hợp lệ
-    if (typeof price === 'number' && !isNaN(price)) {
-      return price.toLocaleString("vi-VN", { style: "currency", currency: "VND" });
-    }
-    return "Liên hệ"; // Trả về giá trị mặc định khi giá không hợp lệ
-  };
-  
+  const formatPrice = (price: number) =>
+    typeof price === "number" && !isNaN(price)
+      ? price.toLocaleString("vi-VN", {
+        style: "currency",
+        currency: "VND",
+      })
+      : "Liên hệ";
 
   return (
-    <View style={styles.product_info}>
-      <Text style={styles.product_name}>{productName}</Text>
+    <View style={styles.container}>
+      <Text style={styles.productName} numberOfLines={2}>
+        {productName}
+      </Text>
 
-      <View style={styles.priceContainer}>
-        <View style={styles.priceText}>
-          <Text style={styles.price_text}>
-            {formatPrice(priceText)} {/* Sử dụng formatPrice để kiểm tra giá trị */}
-          </Text>
-          <Text style={styles.price_discount}>
-            {formatPrice(priceDiscount)} {/* Sử dụng formatPrice để kiểm tra giá trị */}
-          </Text>
+      <View style={styles.priceproduct}>
+        <View style={styles.priceRow}>
+          <Text style={styles.price}>{formatPrice(priceText)}</Text>
+          {priceDiscount > priceText && (
+            <Text style={styles.discount}>{formatPrice(priceDiscount)}</Text>
+          )}
         </View>
-        <Text style={styles.evaluate}>
-          {evaluate} <AntDesign name="star" size={15} color="gold" />
+
+        <View style={styles.ratingRow}>
+          <AntDesign name="star" size={16} color="#FFD700" />
+          <Text style={styles.ratingText}>{evaluate.toFixed(1)} / 5</Text>
+        </View>
+      </View>
+
+      <View style={styles.statRow}>
+        <Text style={styles.statText}>
+          Đã bán: <Text style={styles.bold}>{formatNumber(sold)}</Text>
+        </Text>
+        <Text style={styles.statText}>
+          Tồn kho: <Text style={styles.bold}>{formatNumber(inStock)}</Text>
         </Text>
       </View>
 
-      {/* Dòng "Đã bán ..." */}
-      <View style={styles.row}>
-        <Text style={styles.label}>Đã bán: </Text>
-        <Text style={styles.value}>{formatNumber(sold)}</Text>
-      </View>
-
-      {/* Dòng "Tồn kho" */}
-      <View style={styles.row}>
-        <Text style={styles.label}>Tồn kho: </Text>
-        <Text style={styles.value}>{formatNumber(inStock)}</Text>
-      </View>
-
-      <View style={styles.info_descripton} />
+      <View style={styles.separator} />
     </View>
   );
 };
@@ -83,66 +72,63 @@ const ProductInfo: React.FC<ProductInfoProps> = ({
 export default ProductInfo;
 
 const styles = StyleSheet.create({
-  product_info: {
-    margin: 15,
+  container: {
+    // padding: 12,
+    backgroundColor: "#fff",
   },
-  product_name: {
-    fontSize: 16,
+  productName: {
+    fontSize: 18,
     fontWeight: "600",
-    marginBottom: 5,
+    color: "#222",
+    marginBottom: 6,
   },
-  priceContainer: {
-    width: width*0.9,
+  priceproduct:{
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 5,
+    justifyContent: "space-between",
   },
-  priceText:{
-    width: "50%",
+  priceRow: {
     flexDirection: "row",
     alignItems: "center",
+    marginBottom: 4,
   },
-  price_text: {
-    color: "#ff8000",
-    fontWeight: "bold",
-    marginRight: 10,
+  price: {
     fontSize: 20,
+    color: "#FF5722",
+    fontWeight: "bold",
+    marginRight: 8,
   },
-  price_discount: {
+  discount: {
+    fontSize: 14,
+    color: "#9E9E9E",
     textDecorationLine: "line-through",
-    color: "rgba(189, 189, 189, 1)",
-    fontSize: 12,
-    marginRight: 10,
   },
-  evaluate: {
-    width: "50%",
-    fontSize: width * 0.036,
-    color: '#000',
-    textAlign: 'right', // Căn dòng chữ sang phải
+  ratingRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    // marginLeft: 80,
   },
-  // Tách hai dòng "Đã bán" và "Tồn kho"
-  row: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',  // Đưa toàn bộ nội dung sang bên phải
-    marginBottom: 5,
+  ratingText: {
+    fontSize: 14,
+    color: "#555",
+    marginLeft: 4,
   },
-  label: {
-    fontSize: width * 0.03,
-    color: '#616161',
-    // Tạo khoảng cách giữa label và value, nếu cần
-    marginRight: 4,
+  statRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 8,
   },
-  value: {
-    fontSize: width * 0.03,
-    color: '#616161',
-    fontWeight: 'bold',
-    // Nếu muốn bản thân value cũng căn chữ sang phải:
-    // textAlign: 'right',
+  statText: {
+    fontSize: 14,
+    color: "#616161",
   },
-  info_descripton: {
-    borderWidth: 0.5,
-    width: "95%",
-    marginTop: 10,
-    borderColor: "rgba(210, 213, 219, 0.94)",
+  bold: {
+    fontWeight: "600",
+    color: "#333",
+  },
+  separator: {
+    height: 1,
+    backgroundColor: "#E0E0E0",
+    marginTop: 8,
   },
 });

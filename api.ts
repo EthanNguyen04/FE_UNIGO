@@ -1,4 +1,4 @@
-export const Im_URL = "http://192.168.1.7:3001";
+export const Im_URL = "http://192.168.53.100:3001";
 export const BASE_URL = `${Im_URL}/`;
 // src/api/index.ts
 

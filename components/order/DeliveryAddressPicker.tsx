@@ -140,7 +140,7 @@ export default function DeliveryAddressPicker({ onSelect }: DeliveryAddressPicke
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 
 const styles = StyleSheet.create({
-  container: { width: "100%" },
+  container: { width: "100%"},
   modalOverlay: {
     position: "absolute",
     top: 0,

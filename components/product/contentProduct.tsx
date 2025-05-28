@@ -14,11 +14,11 @@ const ContentProduct: React.FC<ContentProduct> = ({ title, description_text }) =
 
   return (
     <>
-      <View style={styles.description}>
-        {title && <Text style={styles.description_name}>{title}</Text>}
+      <View style={styles.container}>
+        {title && <Text style={styles.title}>{title}</Text>}
 
         <Text
-          style={styles.description_text}
+          style={styles.description}
           numberOfLines={expanded ? undefined : 3}
           onTextLayout={e => {
             if (!showToggle && e.nativeEvent.lines.length > 3) {
@@ -31,46 +31,53 @@ const ContentProduct: React.FC<ContentProduct> = ({ title, description_text }) =
 
         {showToggle && (
           <TouchableOpacity onPress={() => setExpanded(prev => !prev)}>
-            <Text style={styles.seeMoreText}>
+            <Text style={styles.toggle}>
               {expanded ? 'Rút gọn' : 'Xem thêm'}
             </Text>
           </TouchableOpacity>
         )}
       </View>
 
-      <View style={styles.info_descriptonproduct} />
+      <View style={styles.separator} />
     </>
   );
 };
 
 export default ContentProduct;
 
-
-// Style riêng cho ProductDescription
 const styles = StyleSheet.create({
+  container: {
+    paddingHorizontal: width * 0.025,
+    paddingTop: height * 0.005,
+    paddingBottom: height * 0.02,
+    backgroundColor: '#fff',
+  },
+  title: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#222',
+    marginBottom: 10,
+  },
   description: {
-    marginLeft: width * 0.04,
-    width: width * 0.95,
+    fontSize: 14.5,
+    lineHeight: 22,
+    color: '#444',
+    fontWeight: '400',
   },
-  description_name: {
-    fontSize: 15,
-    fontWeight: "500",
-  },
-  description_text: {
-    marginLeft: width * 0.02,
-    fontWeight: "400",
+  toggle: {
+    color: '#1976D2', // Xanh dương đậm
+    fontSize: 14,
+    fontWeight: '500',
     marginTop: 10,
-    marginBottom: 15,
+    alignSelf: 'flex-start',
+    paddingVertical: 4,
+    paddingHorizontal: 6,
+    borderRadius: 4,
+    backgroundColor: 'rgba(255, 128, 0, 0.05)',
   },
-  seeMoreText: {
-    fontSize: width * 0.04,
-    color: "rgba(255, 136, 0, 0.6)", // 0.6 = 60% độ đậm, 40% trong suốt
-    marginTop: height * 0.017,
-    fontWeight: "400",
-    padding: height * 0.01,
-  },
-  info_descriptonproduct: {
-    borderTopWidth: width * 0.025,
-    borderColor: "rgba(210, 213, 219, 0.94)",
+  separator: {
+    height: 10,
+    backgroundColor: '#f0f0f0',
+    width: '100%',
   },
 });

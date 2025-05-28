@@ -1,44 +1,99 @@
 import React from "react";
-import { View, Text, TouchableOpacity, Image, StyleSheet, Dimensions } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  Dimensions,
+  FlatList,
+  Image,
+} from "react-native";
+import { AntDesign } from "@expo/vector-icons";
 
-const { width, height } = Dimensions.get("window");
-
+const { width } = Dimensions.get("window");
 
 function formatNumber(value: number): string {
-    if (value >= 1_000_000) {
-      const millions = (value / 1_000_000).toFixed(1); // Lấy 1 số thập phân
-      return `${millions}m`;
-    } else if (value >= 1_000) {
-      const thousands = (value / 1_000).toFixed(1);   // Lấy 1 số thập phân
-      return `${thousands}k`;
-    } else {
-      // Nếu nhỏ hơn 1.000, trả về dạng nguyên gốc
-      return value.toString();
-    }
-  }
+  if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1)}m`;
+  if (value >= 1_000) return `${(value / 1_000).toFixed(1)}k`;
+  return value.toString();
+}
+
 interface ReviewProductProps {
   reviewCount: number;
   onPressSeeMore?: () => void;
 }
 
-const ReviewProduct: React.FC<ReviewProductProps> = ({
-  reviewCount,
-  onPressSeeMore,
-}) => {
-  return (
-    <View style={styles.product_vote}>
-      <View style={styles.vote_header}>
-        {/* Bên trái: tiêu đề và số lượt đánh giá */}
-        <View style={styles.vote}>
-          <Text style={styles.title}>Đánh giá sản phẩm</Text>
-          <Text style={styles.text_vote}>({formatNumber(reviewCount)})</Text>
-        </View>
+interface Review {
+  id: string;
+  user: string;
+  rating: number;
+  content: string;
+  avatar: string;
+}
 
-        {/* Bên phải: nút Xem thêm */}
-        <TouchableOpacity style={styles.vote_icon} onPress={onPressSeeMore}>
-          <Text style={styles.voteicon_text}>Xem thêm &gt;</Text>
+const mockReviews: Review[] = [
+  {
+    id: "1",
+    user: "Nguyễn Văn A",
+    rating: 5,
+    content: "Sản phẩm rất tốt, giao hàng nhanh, đóng gói cẩn thận.",
+    avatar: "https://randomuser.me/api/portraits/men/32.jpg",
+  },
+  {
+    id: "2",
+    user: "Trần Thị B",
+    rating: 4,
+    content: "Hàng ổn trong tầm giá, sẽ ủng hộ lần sau.",
+    avatar: "https://randomuser.me/api/portraits/women/44.jpg",
+  },
+  {
+    id: "3",
+    user: "Lê Văn C",
+    rating: 3,
+    content: "Tạm ổn, giao hơi chậm nhưng shop hỗ trợ nhiệt tình.",
+    avatar: "https://randomuser.me/api/portraits/men/17.jpg",
+  },
+];
+
+const ReviewProduct: React.FC<ReviewProductProps> = ({ reviewCount, onPressSeeMore }) => {
+  return (
+    <View style={styles.container}>
+      {/* Header */}
+      <View style={styles.header}>
+        <View>
+          <Text style={styles.title}>Đánh giá sản phẩm</Text>
+          <Text style={styles.count}>({formatNumber(reviewCount)} đánh giá)</Text>
+        </View>
+        <TouchableOpacity onPress={onPressSeeMore}>
+          <Text style={styles.seeMore}>Xem thêm &gt;</Text>
         </TouchableOpacity>
       </View>
+
+      {/* Danh sách đánh giá */}
+      <FlatList
+        data={mockReviews}
+        keyExtractor={(item) => item.id}
+        scrollEnabled={false}
+        renderItem={({ item }) => (
+          <View style={styles.reviewItem}>
+            <Image source={{ uri: item.avatar }} style={styles.avatar} />
+            <View style={styles.reviewContentWrapper}>
+              <Text style={styles.userName}>{item.user}</Text>
+              <View style={styles.stars}>
+                {[...Array(5)].map((_, i) => (
+                  <AntDesign
+                    key={i}
+                    name={i < item.rating ? "star" : "staro"}
+                    size={14}
+                    color={i < item.rating ? "#FFD700" : "#ccc"}
+                  />
+                ))}
+              </View>
+              <Text style={styles.reviewContent}>{item.content}</Text>
+            </View>
+          </View>
+        )}
+      />
     </View>
   );
 };
@@ -46,45 +101,62 @@ const ReviewProduct: React.FC<ReviewProductProps> = ({
 export default ReviewProduct;
 
 const styles = StyleSheet.create({
-  product_vote: {
-    // Có thể để flexDirection: 'row' hoặc không tuỳ ý
-    // Nếu chỉ vote_header xử lý row, ta có thể để product_vote linh hoạt
-    width: width * 0.9,
-    alignItems: 'center',
-    // Nếu cần marginLeft, marginTop,... tuỳ thiết kế
+  container: {
+    backgroundColor: "#fff",
+    width: "100%",
   },
-
-  // Quan trọng: justifyContent: 'space-between' giúp chia 2 khối trái-phải
-  vote_header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between', // Đẩy nút "Xem thêm" sang bên phải
-    width: '100%', 
-  },
-  vote: {
-    flexDirection: 'column',
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 10,
   },
   title: {
-    fontSize: 15,
-    marginTop: 10,
-    fontWeight: '500',
+    fontSize: 16,
+    fontWeight: "800",
+    color: "#222",
   },
-  text_vote: {
-    fontWeight: '400',
-    // Thêm style nếu cần
+  count: {
+    fontSize: 13,
+    color: "#666",
+    marginTop: 2,
   },
-  vote_icon: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  seeMore: {
+    fontSize: 14,
+    color: "#FF6F00",
+    fontWeight: "500",
   },
-  voteicon_text: {
-    fontSize: width * 0.032,
-    color: 'rgba(255, 126, 0, 1)',
-    padding: 10,
+  reviewItem: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    marginBottom: 15,
+    borderBottomWidth: 0.5,
+    borderBottomColor: "#eee",
+    paddingBottom: 10,
   },
-  voteicon_icon: {
-    width: width * 0.04,
-    height: height * 0.025,
-    resizeMode: 'contain',
+  avatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    marginRight: 10,
+    backgroundColor: "#ddd",
+  },
+  reviewContentWrapper: {
+    flex: 1,
+  },
+  userName: {
+    fontSize: 14,
+    fontWeight: "500",
+    color: "#333",
+    marginBottom: 4,
+  },
+  stars: {
+    flexDirection: "row",
+    marginBottom: 6,
+  },
+  reviewContent: {
+    fontSize: 14,
+    color: "#444",
+    lineHeight: 20,
   },
 });

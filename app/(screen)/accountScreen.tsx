@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';  
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  TouchableOpacity, 
+import React, { useState, useEffect } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
   Image,
   Alert,
   SafeAreaView,
@@ -74,7 +74,7 @@ export default function AccountScreen() {
     if (data.full_name) formData.append("full_name", data.full_name);
     if (data.currentPassword) formData.append("currentPassword", data.currentPassword);
     if (data.newPassword) formData.append("newPassword", data.newPassword);
-    
+
     // Nếu chọn avatar mới từ thư viện thì URI của nó sẽ có dạng "file://..."
     if (data.avatar && data.avatar.startsWith("file://")) {
       const uriParts = data.avatar.split('.');
@@ -85,7 +85,7 @@ export default function AccountScreen() {
         type: `image/${fileType}`
       } as any);
     }
-    
+
     try {
       const response = await fetch(`${BASE_URL}${updateProfile}`, {
         method: "PUT",
@@ -177,28 +177,28 @@ export default function AccountScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-       {/* Header cố định, luôn hiển thị ở trên cùng */}
-        <HeaderWithBack title="Thông tin của bạn" />
+      {/* Header cố định, luôn hiển thị ở trên cùng */}
+      <HeaderWithBack title="Thông tin của bạn" />
       {/* Phần header với ảnh avatar */}
       <View style={styles.headerContainer}>
         <TouchableOpacity style={styles.avatarContainer} onPress={handleChangeAvatar}>
           <View style={styles.imageWrapper}>
-            <Image 
+            <Image
               // Nếu avatar là file local, sử dụng URI đó; nếu không, ghép Im_URL vào trước
               source={
-                avatar 
-                ? { uri: avatar.startsWith("file://") ? avatar : `${Im_URL}${avatar}` } 
-                : require("../../assets/images/avatar.png")
+                avatar
+                  ? { uri: avatar.startsWith("file://") ? avatar : `${Im_URL}${avatar}` }
+                  : require("../../assets/images/avatar.png")
               }
-              style={styles.avatar} 
+              style={styles.avatar}
               onLoadStart={() => setImageLoading(true)}
               onLoadEnd={() => setImageLoading(false)}
             />
             {imageLoading && (
-              <ActivityIndicator 
-                style={styles.activityIndicator} 
-                size="small" 
-                color="#fff" 
+              <ActivityIndicator
+                style={styles.activityIndicator}
+                size="small"
+                color="#fff"
               />
             )}
           </View>
@@ -216,13 +216,13 @@ export default function AccountScreen() {
           </View>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.row}>
+        <View style={[styles.row, styles.disabledRow]}>
           <Text style={styles.label}>EMAIL</Text>
           <View style={styles.rightSection}>
-            <Text style={styles.value}>{email}</Text>
-            <Text style={styles.arrow}>{'>'}</Text>
+            <Text style={[styles.value, styles.disabledText]}>{email}</Text>
+            <Text style={[styles.arrow, styles.disabledText]}>{'>'}</Text>
           </View>
-        </TouchableOpacity>
+        </View>
 
         <TouchableOpacity style={styles.row} onPress={handlePressPassword}>
           <Text style={styles.label}>MẬT KHẨU</Text>
@@ -243,7 +243,7 @@ export default function AccountScreen() {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContainer}>
             <Text style={styles.modalTitle}>Sửa Tên</Text>
-            <TextInput 
+            <TextInput
               style={styles.input}
               value={newName}
               onChangeText={setNewName}
@@ -271,21 +271,21 @@ export default function AccountScreen() {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContainer}>
             <Text style={styles.modalTitle}>Đổi Mật Khẩu</Text>
-            <TextInput 
+            <TextInput
               style={styles.input}
               placeholder="Mật khẩu cũ"
               secureTextEntry
               value={oldPassword}
               onChangeText={setOldPassword}
             />
-            <TextInput 
+            <TextInput
               style={styles.input}
               placeholder="Mật khẩu mới"
               secureTextEntry
               value={newPassword}
               onChangeText={setNewPassword}
             />
-            <TextInput 
+            <TextInput
               style={styles.input}
               placeholder="Nhập lại mật khẩu mới"
               secureTextEntry
@@ -310,28 +310,33 @@ export default function AccountScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F7F7F7',
+    backgroundColor: '#F5F7FA',
   },
   headerContainer: {
     backgroundColor: '#FF8C00',
-    borderBottomLeftRadius: 10,
-    borderBottomRightRadius: 10,
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
     alignItems: 'center',
-    paddingVertical: 20,
+    paddingVertical: 30,
   },
   avatarContainer: {
     alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
   },
   imageWrapper: {
-    width: IMAGE_SIZE,
-    height: IMAGE_SIZE,
-    borderRadius: IMAGE_SIZE / 2,
+    width: IMAGE_SIZE + 8,
+    height: IMAGE_SIZE + 8,
+    borderRadius: (IMAGE_SIZE + 8) / 2,
+    borderWidth: 2,
+    borderColor: '#fff',
     overflow: 'hidden',
-    position: 'relative',
+    backgroundColor: '#eee',
   },
   avatar: {
     width: IMAGE_SIZE,
     height: IMAGE_SIZE,
+    borderRadius: IMAGE_SIZE / 2,
   },
   activityIndicator: {
     position: 'absolute',
@@ -340,84 +345,97 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     justifyContent: 'center',
-    alignItems: 'center'
+    alignItems: 'center',
   },
   tapToChange: {
     color: '#fff',
     fontSize: 14,
-    marginTop: 5,
+    marginTop: 8,
+    fontStyle: 'italic',
   },
   accountInfoContainer: {
+    marginTop: 20,
     backgroundColor: '#fff',
-    marginTop: 10,
-    borderRadius: 10,
-    marginHorizontal: 15,
-    padding: 10,
+    borderRadius: 16,
+    marginHorizontal: 16,
+    paddingVertical: 10,
+    paddingHorizontal: 10,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 3 },
   },
   row: {
     flexDirection: 'row',
-    paddingVertical: 15,
-    borderBottomWidth: 0.5,
-    borderBottomColor: '#ccc',
     alignItems: 'center',
+    paddingVertical: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
   },
   label: {
     fontSize: 14,
-    color: '#888',
+    color: '#666',
     flex: 1,
   },
   rightSection: {
     flexDirection: 'row',
     alignItems: 'center',
+    maxWidth: '60%',
   },
   value: {
-    fontSize: 14,
+    fontSize: 15,
     color: '#333',
-    marginRight: 10,
+    marginRight: 8,
+    flexShrink: 1,
   },
   arrow: {
     fontSize: 18,
-    color: '#888',
+    color: '#bbb',
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.4)',
+    backgroundColor: 'rgba(0,0,0,0.5)',
     justifyContent: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: 25,
   },
   modalContainer: {
     backgroundColor: '#fff',
-    borderRadius: 10,
+    borderRadius: 16,
     padding: 20,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 5,
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 10,
   },
   modalTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: '600',
     marginBottom: 15,
-    textAlign: 'center'
+    textAlign: 'center',
+    color: '#333',
   },
   input: {
     height: 45,
     borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 8,
-    paddingHorizontal: 10,
+    borderColor: '#ddd',
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    fontSize: 15,
+    backgroundColor: '#f9f9f9',
     marginVertical: 8,
   },
   modalButtons: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginTop: 15,
+    justifyContent: 'space-between',
+    marginTop: 20,
   },
   modalButton: {
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 5,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    backgroundColor: '#f0f0f0',
   },
   modalButtonPrimary: {
     backgroundColor: '#FF8C00',
@@ -425,8 +443,15 @@ const styles = StyleSheet.create({
   modalButtonText: {
     fontSize: 16,
     color: '#555',
+    fontWeight: '500',
   },
   modalButtonTextPrimary: {
     color: '#fff',
+  },
+  disabledRow: {
+    opacity: 0.5, // Làm mờ
+  },
+  disabledText: {
+    color: '#999',
   },
 });

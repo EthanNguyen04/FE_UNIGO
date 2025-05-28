@@ -27,7 +27,7 @@ const NotiInApp: React.FC<NotiInAppProps> = ({ active, title, onHide }) => {
           duration: 300,
           useNativeDriver: true,
         }),
-        Animated.delay(9999999999999),
+        Animated.delay(2000),
         Animated.timing(translateY, {
           toValue: -100,
           duration: 300,

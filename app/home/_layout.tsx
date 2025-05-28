@@ -73,8 +73,15 @@ interface TabIconProps {
 const TabIcon: React.FC<TabIconProps> = ({ source, focused }) => {
   return (
     <View style={{ alignItems: 'center' }}>
-      <Image source={source} style={{ width: 25, height: 25 }} />
-      {focused && <View style={styles.dot} />}
+      <View style={[styles.iconWrapper, focused && styles.focusedBackground]}>
+        <Image
+          source={source}
+          style={[
+            styles.icon,
+            { tintColor: focused ? '#fff' : '#C0C0C0' },
+          ]}
+        />
+      </View>
     </View>
   );
 };
@@ -82,24 +89,37 @@ const TabIcon: React.FC<TabIconProps> = ({ source, focused }) => {
 const styles = StyleSheet.create({
   tabBarStyle: {
     position: 'absolute',
-    bottom: 5, // Đẩy tab bar lên trên
-    width: '95%', // Thu nhỏ tab bar
-    marginHorizontal: '3%', // Căn giữa bằng margin
-    borderRadius: 10, // Bo góc
-    backgroundColor: '#FFFAF5',
-    paddingHorizontal: 5, // Tạo khoảng cách bên trong tab bar
-    elevation: 10, // Đổ bóng trên Android
+    left: 20,
+    right: 20,
+    height: 50, // Tăng chiều cao để căn giữa icon đẹp hơn
+    backgroundColor: '#fff',
+    paddingHorizontal: 10,
+    justifyContent: 'center', // Phân bố đều các tab
+    alignItems: 'center', // Căn giữa icon theo chiều dọc
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 5 },
     shadowOpacity: 0.1,
     shadowRadius: 10,
+    elevation: 10,
+
   },
 
-  dot: {
-    width: 6,
-    height: 6,
-    backgroundColor: '#FF8000',
-    borderRadius: 3,
-    marginTop: 4, // Điều chỉnh khoảng cách với icon
+  iconWrapper: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 5, // Cân chỉnh icon trong khung tab bar
+  },
+
+  focusedBackground: {
+    backgroundColor: 'rgba(255, 55, 0, 1)',
+  },
+
+  icon: {
+    width: 20,
+    height: 20,
   },
 });
+
