@@ -82,7 +82,8 @@ export default function OTPVerificationScreen() {
           setNotificationTitle(data.message || "Gửi lại OTP thất bại");
           setNotificationActive(true);
         }
-      } catch {
+      } catch (error) {
+        console.error("Error resending OTP:", error);
         setNotificationTitle("Lỗi gửi lại OTP, vui lòng thử lại sau");
         setNotificationActive(true);
       } finally {
@@ -165,7 +166,8 @@ export default function OTPVerificationScreen() {
         setNotificationTitle(data.message || "Xác thực OTP thất bại");
         setNotificationActive(true);
       }
-    } catch {
+    } catch (error) {
+      console.error("Error verifying OTP:", error);
       setNotificationTitle("Đã có lỗi xảy ra, vui lòng thử lại sau");
       setNotificationActive(true);
     } finally {

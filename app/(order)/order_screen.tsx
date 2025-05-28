@@ -118,7 +118,7 @@ const OrderScreen: React.FC = () => {
         phone: shippingAddress.phone,
       },
       discount_code_id: selectedDiscount?.id || null,
-      total_price_before_discount: totalPrice,
+      totalPriceIn: totalPrice,
     };
 
     try {
