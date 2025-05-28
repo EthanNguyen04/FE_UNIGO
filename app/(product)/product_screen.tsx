@@ -1,5 +1,5 @@
 // src/screens/ProductScreen.tsx
-import { BASE_URL, Get_product, Im_URL } from "../../api";
+import { BASE_URL, Get_product, Im_URL, Get_evaluate_product } from "../../api";
 import React, { useRef, useEffect, useState } from "react";
 import {
   StyleSheet,
@@ -68,6 +68,8 @@ const [modalVisible, setModalVisible] = useState(false);
     variants: rawVariants,
     discount,       // phần trăm giảm giá
     id: productId,
+    averageStar,    // số sao trung bình
+    totalReviews,   // tổng số lượt đánh giá
   } = productData;
 
   // Ép kiểu và lấy giá salePrice từ variant đầu tiên
@@ -95,7 +97,7 @@ const [modalVisible, setModalVisible] = useState(false);
     }
   );
 
-  // Khi bấm “Mua ngay”
+  // Khi bấm "Mua ngay"
   const handleConfirmAction = (
     color: string,
     size: string,
@@ -156,10 +158,19 @@ const [modalVisible, setModalVisible] = useState(false);
           productName={name}
           priceText={salePrice}
           priceDiscount={originalPrice}
-          evaluate={4.6}
+          evaluate={averageStar || 0}
           sold={sold}
           inStock={stock}
+          hidePrice={stock === 0}
         />
+
+        {stock === 0 && (
+          <View style={styles.outOfStockMessage}>
+            <Text style={styles.outOfStockText}>
+              Sản phẩm này hiện đang ngừng bán, bạn hãy quay lại sau nhé !
+            </Text>
+          </View>
+        )}
 
         {/* Mô tả */}
         <ContentProduct
@@ -169,30 +180,32 @@ const [modalVisible, setModalVisible] = useState(false);
 
         {/* Review */}
         <View style={styles.review}>
-          <ReviewProduct reviewCount={0} />
+          <ReviewProduct reviewCount={totalReviews || 0} />
         </View>
       </ScrollView>
 
       {/* Footer mua / thêm giỏ */}
-      <ProductFooter
-        setIsFavorite={setIsFavorite}
-        modalVisible={modalVisible}
-        setModalVisible={setModalVisible}
-        selectedAction={selectedAction}
-        setSelectedAction={setSelectedAction}
-        selectedColor={selectedColor}
-        setSelectedColor={setSelectedColor}
-        selectedSize={selectedSize}
-        setSelectedSize={setSelectedSize}
-        quantity={quantity}
-        setQuantity={setQuantity}
-        colors={colors}
-        sizes={sizes}
-        variants={variants}
-        productId={productId}
-        onConfirmAction={handleConfirmAction}
-        onFavoritePress={setIsFavorite}
-      />
+      {stock > 0 && (
+        <ProductFooter
+          setIsFavorite={setIsFavorite}
+          modalVisible={modalVisible}
+          setModalVisible={setModalVisible}
+          selectedAction={selectedAction}
+          setSelectedAction={setSelectedAction}
+          selectedColor={selectedColor}
+          setSelectedColor={setSelectedColor}
+          selectedSize={selectedSize}
+          setSelectedSize={setSelectedSize}
+          quantity={quantity}
+          setQuantity={setQuantity}
+          colors={colors}
+          sizes={sizes}
+          variants={variants}
+          productId={productId}
+          onConfirmAction={handleConfirmAction}
+          onFavoritePress={setIsFavorite}
+        />
+      )}
     </View>
   );
 };
@@ -225,4 +238,19 @@ const styles = StyleSheet.create({
   },
   counterText: { color: "#fff", fontSize: 12 },
   review: { marginLeft: 16 },
+  outOfStockMessage: {
+    backgroundColor: "#fff3cd",
+    padding: 15,
+    marginHorizontal: 15,
+    marginTop: 10,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#ffeeba",
+  },
+  outOfStockText: {
+    color: "#856404",
+    textAlign: "center",
+    fontSize: 14,
+    fontWeight: "500",
+  },
 });

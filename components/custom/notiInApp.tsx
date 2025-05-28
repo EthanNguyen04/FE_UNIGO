@@ -44,7 +44,6 @@ const NotiInApp: React.FC<NotiInAppProps> = ({ active, title, onHide }) => {
 
   return (
     <Animated.View style={[styles.container, { transform: [{ translateY }] }]}>
-      <Image source={imageUrl} style={styles.image} />
       <Text style={styles.text}>{title}</Text>
     </Animated.View>
   );
