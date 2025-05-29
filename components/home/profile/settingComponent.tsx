@@ -8,7 +8,6 @@ export interface SettingItem {
   title: string;
 }
 
-// Mảng settings được định nghĩa trực tiếp trong component
 const defaultSettings: SettingItem[] = [
   { id: "1", title: "Tài Khoản & Bảo Mật" },
   { id: "2", title: "Địa Chỉ" },
@@ -18,13 +17,11 @@ const SettingComponent: React.FC = () => {
   const router = useRouter();
 
   const handlePressSetting = (title: string) => {
-    // Ví dụ chuyển màn hình theo title, bạn có thể chuyển theo id hoặc tham số khác.
     if (title === "Tài Khoản & Bảo Mật") {
       router.push("/accountScreen");
     } else if (title === "Địa Chỉ") {
       router.push("/addressScreen");
     } else {
-      // Nếu không định nghĩa route thì hiển thị thông báo
       alert(`Chức năng đang phát triển: ${title}`);
     }
   };
@@ -34,13 +31,15 @@ const SettingComponent: React.FC = () => {
       <FlatList
         data={defaultSettings}
         keyExtractor={(item) => item.id}
+        ItemSeparatorComponent={() => <View style={styles.separator} />}
         renderItem={({ item }) => (
-          <TouchableOpacity 
-            style={styles.settingItem} 
+          <TouchableOpacity
+            style={styles.settingItem}
             onPress={() => handlePressSetting(item.title)}
+            activeOpacity={0.7}
           >
             <Text style={styles.settingText}>{item.title}</Text>
-            <Ionicons name="chevron-forward" size={20} color="#888" />
+            <Ionicons name="chevron-forward-outline" size={20} color="#999" />
           </TouchableOpacity>
         )}
       />
@@ -50,29 +49,39 @@ const SettingComponent: React.FC = () => {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: "#F7F7F7",
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: "#ddd",
-    padding: 10,
-    margin: 15,
+    backgroundColor: "#ffffff",
+    borderRadius: 16,
+    padding: 16,
+    marginHorizontal: 16,
+    marginTop: 20,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    elevation: 4,
+  },
+  cardTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#FF6B00",
+    marginBottom: 12,
   },
   settingItem: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingVertical: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: "#f0f0f0",
+    paddingVertical: 14,
+    paddingHorizontal: 4,
   },
   settingText: {
     fontSize: 16,
     color: "#333",
+    fontWeight: "500",
+  },
+  separator: {
+    height: 1,
+    backgroundColor: "#f2f2f2",
+    marginLeft: 4,
   },
 });
 

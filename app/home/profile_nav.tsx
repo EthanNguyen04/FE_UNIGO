@@ -7,12 +7,14 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Alert,
+  ScrollView,
+  Dimensions,
 } from "react-native";
-import * as Updates from "expo-updates";       // ← thêm vào
-
+import * as Updates from "expo-updates";
 import { useRouter, useFocusEffect } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Image } from "expo-image";
+import { LinearGradient } from 'expo-linear-gradient';
 
 import LogoutDialog from "../../components/home/LogoutDialog";
 import CartIcon from "@/components/custom/CartIcon";
@@ -26,6 +28,8 @@ import {
   Im_URL,
   LOGOUT_api,
 } from "../../api";
+
+const { width } = Dimensions.get('window');
 
 export default function ProfileScreen() {
   const [logoutVisible, setLogoutVisible] = useState(false);
@@ -102,29 +106,54 @@ export default function ProfileScreen() {
   // 4) Loading state
   if (isLoggedIn === null) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#FF8000" />
-      </View>
+      <LinearGradient
+        colors={['#667eea', '#764ba2']}
+        style={styles.loadingContainer}
+      >
+        <View style={styles.loadingCard}>
+          <ActivityIndicator size="large" color="#fff" />
+          <Text style={styles.loadingText}>Đang tải...</Text>
+        </View>
+      </LinearGradient>
     );
   }
 
   // 5) Nếu chưa login
   if (!isLoggedIn) {
     return (
-      <View style={styles.authContainer}>
-        <TouchableOpacity
-          style={styles.authButton}
-          onPress={() => router.push("/login")}
-        >
-          <Text style={styles.authButtonText}>Đăng nhập</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.authButton}
-          onPress={() => router.push("/register")}
-        >
-          <Text style={styles.authButtonText}>Đăng ký</Text>
-        </TouchableOpacity>
-      </View>
+      <LinearGradient
+        colors={['#667eea', '#764ba2']}
+        style={styles.authContainer}
+      >
+        <View style={styles.authCard}>
+          <View style={styles.authIconContainer}>
+            <Text style={styles.authIcon}>👋</Text>
+          </View>
+          <Text style={styles.authTitle}>Chào mừng bạn!</Text>
+          <Text style={styles.authSubtitle}>
+            Đăng nhập để trải nghiệm đầy đủ tính năng
+          </Text>
+          
+          <TouchableOpacity
+            style={styles.primaryButton}
+            onPress={() => router.push("/login")}
+          >
+            <LinearGradient
+              colors={['#FF8A65', '#FF5722']}
+              style={styles.buttonGradient}
+            >
+              <Text style={styles.primaryButtonText}>Đăng nhập</Text>
+            </LinearGradient>
+          </TouchableOpacity>
+          
+          <TouchableOpacity
+            style={styles.secondaryButton}
+            onPress={() => router.push("/register")}
+          >
+            <Text style={styles.secondaryButtonText}>Đăng ký tài khoản</Text>
+          </TouchableOpacity>
+        </View>
+      </LinearGradient>
     );
   }
 
@@ -163,53 +192,77 @@ export default function ProfileScreen() {
       Alert.alert("Lỗi", err.message || "Có lỗi xảy ra");
     }
   };
+
   // 7) UI khi đã login
   const { username, avatar_url, order_count, wishlist_count } = userInfo;
+  
   return (
     <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <View style={styles.avatarWrapper}>
-          <Image
-            source={
-              typeof avatar_url === "string"
-                ? { uri: avatar_url }
-                : avatar_url
-            }
-            style={styles.avatar}
-            contentFit="cover"
-            onLoadStart={() => setAvatarLoading(true)}
-            onLoadEnd={() => setAvatarLoading(false)}
-          />
-          {avatarLoading && (
-            <ActivityIndicator
-              style={styles.activityIndicator}
-              size="small"
-              color="#FF8000"
-            />
-          )}
-        </View>
-        <View style={styles.userInfo}>
-          <Text style={styles.username}>{username || "Unknown"}</Text>
-          <View style={styles.stats}>
-            <Text style={styles.statText}>{order_count} Đã mua</Text>
-            <Text style={styles.statText}>{wishlist_count} Được thích</Text>
+      {/* <ScrollView showsVerticalScrollIndicator={false}> */}
+        {/* Header with gradient background */}
+        <LinearGradient
+          colors={['#667eea', '#764ba2']}
+          style={styles.headerGradient}
+        >
+          <View style={styles.headerContent}>
+            <View style={styles.topBar}>
+              <CartIcon />
+            </View>
+            
+            <View style={styles.profileSection}>
+              <View style={styles.avatarContainer}>
+                <View style={styles.avatarBorder}>
+                  <Image
+                    source={
+                      typeof avatar_url === "string"
+                        ? { uri: avatar_url }
+                        : avatar_url
+                    }
+                    style={styles.avatar}
+                    contentFit="cover"
+                    onLoadStart={() => setAvatarLoading(true)}
+                    onLoadEnd={() => setAvatarLoading(false)}
+                  />
+                  {avatarLoading && (
+                    <View style={styles.avatarLoading}>
+                      <ActivityIndicator size="small" color="#FF8A65" />
+                    </View>
+                  )}
+                </View>
+              </View>
+              
+              <View style={styles.userDetails}>
+                <Text style={styles.userName}>{username || "Unknown"}</Text>
+                <View style={styles.statsContainer}>
+                  <View style={styles.statItem}>
+                    <Text style={styles.statNumber}>{order_count}</Text>
+                    <Text style={styles.statLabel}>Số lượng mua</Text>
+                  </View>
+                  <View style={styles.statDivider} />
+                  <View style={styles.statItem}>
+                    <Text style={styles.statNumber}>{wishlist_count}</Text>
+                    <Text style={styles.statLabel}>Yêu thích</Text>
+                  </View>
+                </View>
+              </View>
+            </View>
           </View>
+        </LinearGradient>
+
+        {/* Content */}
+        <View style={styles.contentContainer}>
+          <OrderProfileComponent />
+          <SettingComponent />
+          
+          {/* Logout Button */}
+          <TouchableOpacity
+            style={styles.logoutButton}
+            onPress={() => setLogoutVisible(true)}
+          >
+            <Text style={styles.logoutButtonText}>Đăng xuất</Text>
+          </TouchableOpacity>
         </View>
-        <CartIcon />
-      </View>
-
-      {/* Các mục khác */}
-      <OrderProfileComponent />
-      <SettingComponent />
-
-      {/* Nút mở dialog */}
-      <TouchableOpacity
-        style={[styles.authButton_logout, { marginTop: 20 }]}
-        onPress={() => setLogoutVisible(true)}
-      >
-        <Text style={styles.authButtonText_logout}>Đăng Xuất</Text>
-      </TouchableOpacity>
+      {/* </ScrollView> */}
 
       {/* Dialog */}
       <LogoutDialog
@@ -222,54 +275,211 @@ export default function ProfileScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#fff", paddingTop: 40 },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 15,
-    marginBottom: 10,
+  container: {
+    flex: 1,
+    backgroundColor: '#f8f9fa',
   },
-  avatarWrapper: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    overflow: "hidden",
-    marginRight: 15,
-  },
-  avatar: { width: "100%", height: "100%" },
-  activityIndicator: {
-    position: "absolute",
-    top: 0, left: 0, right: 0, bottom: 0,
-    justifyContent: "center", alignItems: "center",
-  },
-  userInfo: { flex: 1 },
-  username: {
-    fontSize: 18, fontWeight: "bold", color: "#333", marginBottom: 5,
-  },
-  stats: { flexDirection: "row" },
-  statText: {
-    fontSize: 12, color: "#666", marginRight: 15, fontWeight: "bold",
-  },
+  
+  // Loading States
   loadingContainer: {
-    flex: 1, justifyContent: "center", alignItems: "center",
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
+  loadingCard: {
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    padding: 30,
+    borderRadius: 20,
+    alignItems: 'center',
+    backdropFilter: 'blur(10px)',
+  },
+  loadingText: {
+    color: '#fff',
+    fontSize: 16,
+    marginTop: 15,
+    fontWeight: '600',
+  },
+  
+  // Auth States
   authContainer: {
-    flex: 1, justifyContent: "center", alignItems: "center", padding: 20,
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
   },
-  authButton_logout: {
-    backgroundColor: "#AEAEAE", paddingVertical: 5,
-    borderRadius: 8, marginHorizontal: 70,
-    alignItems: "center"
+  authCard: {
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    padding: 40,
+    borderRadius: 25,
+    alignItems: 'center',
+    width: width - 40,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.25,
+    shadowRadius: 20,
+    elevation: 15,
   },
-  authButtonText_logout: {
-    color: "#fff", fontSize: 16, fontWeight: "bold",
+  authIconContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: '#f0f0f0',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 20,
   },
-
-  authButton: {
-    backgroundColor: "#FF8000", paddingVertical: 12, paddingHorizontal: 30,
-    borderRadius: 8, marginBottom: 10,
+  authIcon: {
+    fontSize: 40,
   },
-  authButtonText: {
-    color: "#fff", fontSize: 16, fontWeight: "bold",
+  authTitle: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  authSubtitle: {
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center',
+    marginBottom: 30,
+    lineHeight: 22,
+  },
+  primaryButton: {
+    width: '100%',
+    marginBottom: 15,
+    borderRadius: 15,
+    overflow: 'hidden',
+  },
+  buttonGradient: {
+    paddingVertical: 18,
+    alignItems: 'center',
+  },
+  primaryButtonText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  secondaryButton: {
+    paddingVertical: 15,
+    paddingHorizontal: 30,
+  },
+  secondaryButtonText: {
+    color: '#667eea',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  
+  // Header
+  headerGradient: {
+    paddingTop: 25,
+    paddingBottom: 15,
+    borderBottomLeftRadius: 25,
+    borderBottomRightRadius: 25,
+  },
+  headerContent: {
+    paddingHorizontal: 20,
+  },
+  topBar: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+  },
+  screenTitle: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#fff',
+  },
+  profileSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    bottom: 20
+  },
+  avatarContainer: {
+    marginRight: 20,
+  },
+  avatarBorder: {
+    width: 90,
+    height: 90,
+    borderRadius: 45,
+    padding: 4,
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+  },
+  avatar: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 41,
+  },
+  avatarLoading: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    borderRadius: 41,
+  },
+  userDetails: {
+    flex: 1,
+    marginTop: 10
+  },
+  userName: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#fff',
+    // marginBottom: 15,
+  },
+  statsContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  statItem: {
+    alignItems: 'center',
+    paddingHorizontal: 15,
+  },
+  statNumber: {
+    fontSize: 17,
+    fontWeight: 'bold',
+    color: '#fff',
+  },
+  statLabel: {
+    fontSize: 7,
+    color: 'rgba(255, 255, 255, 0.8)',
+    marginTop: 2,
+  },
+  statDivider: {
+    width: 1,
+    height: 30,
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+  },
+  
+  // Content
+  contentContainer: {
+    padding: 2,
+    paddingTop: 2,
+  },
+  
+  // Logout Button
+  logoutButton: {
+    backgroundColor: '#fff',
+    paddingVertical: 10,
+    borderRadius: 15,
+    alignItems: 'center',
+    marginTop: 10,
+    marginHorizontal: 40,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 5,
+    borderWidth: 1,
+    borderColor: '#f0f0f0',
+  },
+  logoutButtonText: {
+    color: '#666',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });

@@ -28,7 +28,7 @@ const ItemProductOrder: React.FC<Order> = ({
     currency: "VND",
     maximumFractionDigits: 0,
   });
-  
+
   return (
     <TouchableOpacity style={styles.container}>
       <View style={styles.details}>
@@ -40,7 +40,10 @@ const ItemProductOrder: React.FC<Order> = ({
           <Text style={[styles.detail, styles.detailMargin]}>Màu: {color}</Text>
         </View>
         <Text style={styles.quantity}>Số lượng: {quantity}</Text>
-        <Text style={styles.priceText}>Giá: {formattedPrice}</Text>
+        <View style={styles.rowproduct}>
+          <Text style={styles.priceText}>Giá: </Text>
+          <Text style={styles.priceTextproduct}>{formattedPrice}</Text>
+        </View>
       </View>
     </TouchableOpacity>
   );
@@ -65,6 +68,9 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: "row",
   },
+  rowproduct: {
+    flexDirection: "row",
+  },
   detail: {
     fontSize: 14,
     color: "#555",
@@ -78,9 +84,16 @@ const styles = StyleSheet.create({
   },
   priceText: {
     fontSize: 14,
-    color: "#FF6600",
+    color: "#555",
     fontWeight: "bold",
+    width: 25
   },
+  priceTextproduct: {
+    fontSize: 14,
+    color: "rgb(255, 30, 30)",
+    fontWeight: "bold",
+    marginLeft: 5
+  }
 });
 
 export default ItemProductOrder;

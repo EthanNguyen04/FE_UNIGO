@@ -100,7 +100,7 @@ const ItemProductCart: React.FC<Cart> = ({
         <AntDesign
           name={selected ? "checksquare" : "checksquareo"}
           size={20}
-          color="#FF6600"
+          color="rgb(0, 200, 255)"
         />
       </View>
 
@@ -194,7 +194,7 @@ const styles = StyleSheet.create({
   },
   price: {
     fontSize: 16,
-    color: "#FF6600",
+    color: "rgba(255, 0, 0,0.8)",
     fontWeight: "bold",
     marginBottom: 4,
   },

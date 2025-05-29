@@ -1,60 +1,59 @@
-import React, { useState, useCallback, useEffect } from 'react'; 
-import { 
-  View, 
-  TextInput, 
-  StyleSheet, 
-  Alert, 
-  FlatList, 
-  TouchableOpacity, 
-  Text 
+import React, { useState, useCallback } from 'react';
+import {
+  View,
+  TextInput,
+  StyleSheet,
+  Alert,
+  FlatList,
+  TouchableOpacity,
+  Text,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useFocusEffect } from 'expo-router';
+import axios from 'axios';
 import CartIcon from './CartIcon';
 
-// Giả lập data local để filter gợi ý
-const MOCK_PRODUCTS = [
-  'Áo nam',
-  'Áo nữ',
-  'Quần jean',
-  'Hoddi',
-  'Túi xách',
-  'Mắt kính thời trang',
-  // ...
-];
+interface Product {
+  _id: string;
+  name: string;
+}
 
 interface FixedHeaderProps {
   placeholder?: string;
 }
 
-const FixedHeader: React.FC<FixedHeaderProps> = ({ placeholder = "Tìm sản phẩm" }) => {
+const FixedHeader: React.FC<FixedHeaderProps> = ({ placeholder = 'Tìm sản phẩm' }) => {
   const router = useRouter();
-  const [searchText, setSearchText] = useState("");
-  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [searchText, setSearchText] = useState<string>('');
+  const [suggestions, setSuggestions] = useState<Product[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
 
-  // Clear khi focus lại màn
   useFocusEffect(
     useCallback(() => {
-      setSearchText("");
+      setSearchText('');
       setSuggestions([]);
       setShowSuggestions(false);
     }, [])
   );
 
-  // Hàm lọc gợi ý (có thể thay thành fetch API)
-  const fetchSuggestions = (query: string) => {
-    if (query.length < 1) {
+  const fetchSuggestions = async (query: string) => {
+    if (query.trim().length < 1) {
       setSuggestions([]);
       setShowSuggestions(false);
       return;
     }
-    // Lọc từ MOCK_PRODUCTS
-    const filtered = MOCK_PRODUCTS.filter(item =>
-      item.toLowerCase().includes(query.toLowerCase())
-    );
-    setSuggestions(filtered);
-    setShowSuggestions(filtered.length > 0);
+    try {
+      const url = `http://192.168.53.114:3001/api/product/searchProducts?name=${encodeURIComponent(query)}`;
+      const res = await axios.get(url);
+      // Giả định API trả về mảng products
+      const products: Product[] = res.data.products || [];
+      setSuggestions(products);
+      setShowSuggestions(products.length > 0);
+    } catch (error) {
+      console.error('Lỗi lấy gợi ý:', error);
+      setSuggestions([]);
+      setShowSuggestions(false);
+    }
   };
 
   const handleChangeText = (text: string) => {
@@ -62,15 +61,15 @@ const FixedHeader: React.FC<FixedHeaderProps> = ({ placeholder = "Tìm sản ph�
     fetchSuggestions(text);
   };
 
-  const handleSuggestionPress = (item: string) => {
-    setSearchText(item);
+  const handleSuggestionPress = (item: Product) => {
+    setSearchText(item.name);
     setShowSuggestions(false);
-    router.push({ pathname: '/listProduct', params: { query: item } });
+    router.push({ pathname: '/listProduct', params: { query: item.name } });
   };
 
   const handleSubmitEditing = () => {
     if (searchText.trim().length === 0) {
-      Alert.alert("Thông báo", "Vui lòng nhập từ khóa");
+      Alert.alert('Thông báo', 'Vui lòng nhập từ khóa');
       return;
     }
     setShowSuggestions(false);
@@ -90,6 +89,8 @@ const FixedHeader: React.FC<FixedHeaderProps> = ({ placeholder = "Tìm sản ph�
             onChangeText={handleChangeText}
             onSubmitEditing={handleSubmitEditing}
             onFocus={() => fetchSuggestions(searchText)}
+            autoCapitalize="none"
+            autoCorrect={false}
           />
         </View>
         <CartIcon />
@@ -99,14 +100,14 @@ const FixedHeader: React.FC<FixedHeaderProps> = ({ placeholder = "Tìm sản ph�
         <View style={styles.suggestionsContainer}>
           <FlatList
             data={suggestions}
-            keyExtractor={item => item}
+            keyExtractor={(item) => item._id}
             keyboardShouldPersistTaps="handled"
             renderItem={({ item }) => (
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={styles.suggestionItem}
                 onPress={() => handleSuggestionPress(item)}
               >
-                <Text>{item}</Text>
+                <Text>{item.name}</Text>
               </TouchableOpacity>
             )}
           />
@@ -118,21 +119,21 @@ const FixedHeader: React.FC<FixedHeaderProps> = ({ placeholder = "Tìm sản ph�
 
 const styles = StyleSheet.create({
   fixedHeader: {
-    backgroundColor: "#fff",
-    zIndex: 10,            // đưa lên trên
+    backgroundColor: '#fff',
+    zIndex: 10,
     marginTop: 20,
   },
   headerContainer: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingHorizontal: 10,
     paddingVertical: 10,
   },
   searchContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#f0f0f0",
-    borderRadius: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f0f0f0',
+    borderRadius: 8,
     paddingVertical: 5,
     paddingHorizontal: 15,
     flex: 1,
@@ -144,11 +145,12 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     fontSize: 16,
-    color: "#000",
+    color: '#000',
+    height: 40,
   },
   suggestionsContainer: {
     position: 'absolute',
-    top: 60,               // điều chỉnh cho khớp với height headerContainer
+    top: 60,
     left: 10,
     right: 10,
     backgroundColor: '#fff',

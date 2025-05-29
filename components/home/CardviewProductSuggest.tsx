@@ -53,34 +53,39 @@ const CardviewProductSuggest: React.FC<CardviewProductSuggestProps> = ({
   const imageSource = { uri: Im_URL + (product.image as { uri: string }).uri };
 
   return (
-    <TouchableOpacity activeOpacity={0.8} onPress={onPress}>
+    <TouchableOpacity activeOpacity={0.95} onPress={onPress}>
       <View style={styles.card}>
-        <Image source={imageSource} style={styles.cardImage} />
+        <View style={styles.imageWrapper}>
+          <Image source={imageSource} style={styles.cardImage} />
+          <View style={styles.imageOverlay} />
+        </View>
 
         {/* Tên sản phẩm (tối đa 2 dòng) */}
-        <Text style={[styles.cardName, { minHeight: 40, lineHeight: 20 }]} numberOfLines={2}>
-          {product.name}
-        </Text>
-
-        {/* Vùng hiển thị giá (luôn luôn 2 dòng) */}
-        <View style={styles.priceArea}>
-          {/* Chỉ hiển thị giá cũ nếu có sale */}
-          <Text
-            style={[
-              styles.cardPriceOriginal,
-              { opacity: showOldPrice ? 1 : 0 }, // Ẩn giá cũ nếu không có sale
-            ]}
-          >
-            {showOldPrice}
+        <View style={styles.contentSection}>
+          <Text style={[styles.cardName, { minHeight: 40, lineHeight: 20 }]} numberOfLines={2}>
+            {product.name}
           </Text>
 
-          <Text
-            style={
-              product.discount_price > 0 ? styles.cardPriceSale : styles.cardPrice
-            }
-          >
-            {showNewPrice}
-          </Text>
+          {/* Vùng hiển thị giá (luôn luôn 2 dòng) */}
+          <View style={styles.priceArea}>
+            {/* Chỉ hiển thị giá cũ nếu có sale */}
+            <Text
+              style={[
+                styles.cardPriceOriginal,
+                { opacity: showOldPrice ? 1 : 0 },
+              ]}
+            >
+              {showOldPrice}
+            </Text>
+
+            <Text
+              style={
+                product.discount_price > 0 ? styles.cardPriceSale : styles.cardPrice
+              }
+            >
+              {showNewPrice}
+            </Text>
+          </View>
         </View>
       </View>
     </TouchableOpacity>
@@ -89,69 +94,86 @@ const CardviewProductSuggest: React.FC<CardviewProductSuggestProps> = ({
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: "#fff",
+    backgroundColor: "rgba(85, 85, 85, 0.46)",
     borderRadius: 10,
-    margin: 5,
+    // margin: 2,
     width: screenWidth * 0.45,
-    // Hiệu ứng nổi (shadow)
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    // Elegant shadow
+    shadowColor: "rgba(0, 0, 0, 0.08)",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 1,
+    shadowRadius: 12,
+    elevation: 5,
+    // Clean border
+    borderWidth: 2,
+    borderColor: "rgba(0, 0, 0, 0.04)",
+    overflow: "hidden",
   },
+  
+  imageWrapper: {
+    position: "relative",
+    backgroundColor: "#f8f9fa",
+  },
+  
   cardImage: {
     width: "100%",
-    borderRadius: 10,
-    resizeMode: "cover",
-    marginBottom: 8,
     height: 200,
+    resizeMode: "cover",
   },
-  cardName: {
-    fontSize: 15,
-    fontWeight: "500",
-    color: "#333",
-    textAlign: "left",
-    marginLeft: 10,
-    marginRight: 10,
+  
+  imageOverlay: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.05)",
+  },
+  
+  contentSection: {
+    padding: 14,
+    backgroundColor: "#ffffff",
   },
 
-  /* Luôn để 2 dòng giá ở đây */
+  cardName: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#2d3748",
+    textAlign: "left",
+    marginBottom: 8,
+    fontFamily: "System",
+  },
+
+  /* Vùng giá */
   priceArea: {
-    minHeight: 50, // Đảm bảo chiều cao cho 2 dòng, bất kể có sale hay không
-    justifyContent: "space-between",
+    minHeight: 42,
+    justifyContent: "flex-end",
   },
 
   /* Dòng giá cũ */
   cardPriceOriginal: {
-    color: "#888",
+    color: "#a0aec0",
     fontSize: 12,
-    fontWeight: "600",
+    fontWeight: "500",
     textDecorationLine: "line-through",
-    marginLeft: 10,
-    marginRight: 10,
-    // Không hiển thị khi không có sale
-    opacity: 0, 
+    marginBottom: 2,
+    fontFamily: "System",
   },
 
   /* Dòng giá sale */
   cardPriceSale: {
-    color: "#FF8000",
+    color: "#e53e3e",
     fontSize: 16,
-    fontWeight: "bold",
-    marginLeft: 10,
-    marginRight: 10,
-    textAlign: "right",
+    fontWeight: "700",
+    fontFamily: "System",
   },
 
-  /* Dòng giá bình thường (khi không có sale) */
+  /* Dòng giá bình thường */
   cardPrice: {
-    color: "#FF8000",
+    color: "#f56500",
     fontSize: 16,
-    fontWeight: "bold",
-    marginLeft: 10,
-    marginRight: 10,
-    textAlign: "right",
+    fontWeight: "700",
+    fontFamily: "System",
   },
 });
 

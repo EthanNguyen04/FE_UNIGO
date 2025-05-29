@@ -115,7 +115,7 @@ export default ReviewProduct;
 
 const styles = StyleSheet.create({
   container: {
-    padding: 16,
+    // padding: 16,
     backgroundColor: '#fff',
     borderRadius: 8,
     marginBottom: 16,

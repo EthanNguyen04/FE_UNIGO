@@ -65,67 +65,36 @@ export default function OrderProfileComponent() {
     }, [fetchOrderCount])
   );
 
+  const renderItem = (icon: any, label: string, count: number, tab: string) => (
+    <TouchableOpacity
+      style={styles.orderItem}
+      onPress={() => router.push({ pathname: "/orders/[tab]", params: { tab } })}
+    >
+      <View style={styles.iconContainer}>
+        <Image source={icon} style={styles.orderIcon} contentFit="contain" />
+        {count > 0 && (
+          <View style={styles.badge}>
+            <Text style={styles.badgeText}>{count}</Text>
+          </View>
+        )}
+      </View>
+      <Text style={styles.orderLabel}>{label}</Text>
+    </TouchableOpacity>
+  );
+
   return (
     <View style={styles.card}>
       <View style={styles.header}>
         <Text style={styles.sectionTitle}>ĐƠN MUA</Text>
-        <TouchableOpacity onPress={() => router.push('/orders/[tab]')}>
-          <Text style={styles.viewMore}>Xem {">"}</Text>
+        <TouchableOpacity onPress={() => router.push("/orders/[tab]")}>
+          <Text style={styles.viewMore}>Xem tất cả</Text>
         </TouchableOpacity>
       </View>
       <View style={styles.iconsRow}>
-        {/** Chờ xác nhận */}
-        <TouchableOpacity
-          style={styles.orderItem}
-          onPress={() => router.push({ pathname: '/orders/[tab]', params: { tab: 'pendingConfirmation' } })}
-        >
-          <View style={styles.iconContainer}>
-            <Image source={icons.xac_nhan} style={styles.orderIcon} contentFit="contain" />
-            <Text style={styles.orderLabel}>Chờ xác nhận</Text>
-            {orderCounts.choXacNhan > 0 && (
-              <Text style={styles.redLabel}>{orderCounts.choXacNhan}</Text>
-            )}
-          </View>
-        </TouchableOpacity>
-        {/** Chờ lấy hàng */}
-        <TouchableOpacity
-          style={styles.orderItem}
-          onPress={() => router.push({ pathname: '/orders/[tab]', params: { tab: 'waitingPickup' } })}
-        >
-          <View style={styles.iconContainer}>
-            <Image source={icons.cho_lay} style={styles.orderIcon} contentFit="contain" />
-            <Text style={styles.orderLabel}>Chờ lấy hàng</Text>
-            {orderCounts.choLayHang > 0 && (
-              <Text style={styles.redLabel}>{orderCounts.choLayHang}</Text>
-            )}
-          </View>
-        </TouchableOpacity>
-        {/** Chờ giao hàng */}
-        <TouchableOpacity
-          style={styles.orderItem}
-          onPress={() => router.push({ pathname: '/orders/[tab]', params: { tab: 'delivering' } })}
-        >
-          <View style={styles.iconContainer}>
-            <Image source={icons.cho_giao} style={styles.orderIcon} contentFit="contain" />
-            <Text style={styles.orderLabel}>Chờ giao hàng</Text>
-            {orderCounts.choGiaoHang > 0 && (
-              <Text style={styles.redLabel}>{orderCounts.choGiaoHang}</Text>
-            )}
-          </View>
-        </TouchableOpacity>
-        {/** Đánh giá */}
-        <TouchableOpacity
-          style={styles.orderItem}
-          onPress={() => router.push({ pathname: '/orders/[tab]', params: { tab: 'delivered' } })}
-        >
-          <View style={styles.iconContainer}>
-            <Image source={icons.review} style={styles.orderIcon} contentFit="contain" />
-            <Text style={styles.orderLabel}>Đánh giá</Text>
-            {orderCounts.daGiao > 0 && (
-              <Text style={styles.redLabel}>{orderCounts.daGiao}</Text>
-            )}
-          </View>
-        </TouchableOpacity>
+        {renderItem(icons.xac_nhan, "Chờ xác nhận", orderCounts.choXacNhan, "pendingConfirmation")}
+        {renderItem(icons.cho_lay, "Chờ lấy hàng", orderCounts.choLayHang, "waitingPickup")}
+        {renderItem(icons.cho_giao, "Chờ giao hàng", orderCounts.choGiaoHang, "delivering")}
+        {renderItem(icons.review, "Đánh giá", orderCounts.daGiao, "delivered")}
       </View>
     </View>
   );
@@ -133,28 +102,27 @@ export default function OrderProfileComponent() {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: "#F7F7F7",
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: "#ddd",
-    padding: 10,
-    margin: 15,
+    backgroundColor: "#ffffff",
+    borderRadius: 16,
+    padding: 16,
+    marginHorizontal: 16,
+    marginVertical: 12,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 4,
   },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 15,
+    marginBottom: 16,
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: "bold",
-    color: "#FF8C00",
+    fontWeight: "600",
+    color: "#FF6B00",
   },
   viewMore: {
     fontSize: 14,
@@ -162,34 +130,43 @@ const styles = StyleSheet.create({
   },
   iconsRow: {
     flexDirection: "row",
-    justifyContent: "space-evenly",
-    alignItems: "center",
+    justifyContent: "space-around",
   },
   orderItem: {
     alignItems: "center",
+    width: 70,
   },
   iconContainer: {
     position: "relative",
-    alignItems: "center",
+    width: 50,
+    height: 50,
+    marginBottom: 8,
   },
   orderIcon: {
     width: 50,
     height: 50,
+    borderRadius: 12,
   },
   orderLabel: {
-    fontSize: 10,
-    color: "#333",
-    marginTop: 5,
-  },
-  redLabel: {
-    position: "absolute",
-    bottom: 15,
-    right: 5,
     fontSize: 12,
-    color: "red",
-    fontWeight: "bold",
-    backgroundColor: "#fff",
-    borderRadius: 30,
+    color: "#333",
+    textAlign: "center",
+  },
+  badge: {
+    position: "absolute",
+    top: -6,
+    right: -6,
+    backgroundColor: "red",
+    borderRadius: 10,
     paddingHorizontal: 5,
+    minWidth: 18,
+    height: 18,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  badgeText: {
+    color: "#fff",
+    fontSize: 10,
+    fontWeight: "bold",
   },
 });

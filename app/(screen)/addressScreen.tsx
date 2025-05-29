@@ -18,10 +18,8 @@ export default function AddressScreen() {
   const [addressList, setAddressList] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [showAddDialog, setShowAddDialog] = useState<boolean>(false);
-  // Để sửa địa chỉ, có thể truyền existingAddress từ danh sách hiện có
   const [addressToEdit, setAddressToEdit] = useState<string>("");
 
-  // Hàm lấy danh sách địa chỉ từ API
   const fetchAddresses = async () => {
     setLoading(true);
     try {
@@ -40,7 +38,6 @@ export default function AddressScreen() {
       });
       if (response.status === 200) {
         const data = await response.json();
-        // Ví dụ API trả về: { addresses: [{ address: "...", phone: "..." }, ...] }
         const addressesWithId = data.addresses.map((item: any, index: number) => ({
           id: `${index}`,
           addressDetail: item.address,
@@ -64,10 +61,8 @@ export default function AddressScreen() {
   }, []);
 
   const handleEditAddress = (addressId: string) => {
-    // Tìm item trong danh sách theo id
     const addressItem = addressList.find((item) => item.id === addressId);
     if (addressItem) {
-      // Đặt giá trị địa chỉ cần sửa vào state để truyền qua component AddAddress
       setAddressToEdit(addressItem.addressDetail);
       setShowAddDialog(true);
     } else {
@@ -76,14 +71,11 @@ export default function AddressScreen() {
   };
 
   const handleAddNewAddress = () => {
-    // Khi thêm mới thì không truyền oldAddress (để backend hiểu là thêm mới)
     setAddressToEdit("");
     setShowAddDialog(true);
   };
 
-  // Sau khi lưu xong, gọi fetchAddresses để làm mới dữ liệu từ server
   const handleSaveNewAddress = (newAddress: AddAddressData) => {
-    // Nếu đang sửa địa chỉ (addressToEdit có giá trị), cập nhật item trong danh sách cục bộ
     if (addressToEdit && addressToEdit.trim() !== "") {
       setAddressList((prev) =>
         prev.map((item) =>
@@ -97,7 +89,6 @@ export default function AddressScreen() {
         )
       );
     } else {
-      // Nếu thêm mới, gán id mới theo độ dài mảng hiện có
       setAddressList((prev) => [
         ...prev,
         {
@@ -108,7 +99,6 @@ export default function AddressScreen() {
       ]);
     }
     setShowAddDialog(false);
-    // Reload dữ liệu từ API để đảm bảo đồng bộ với backend
     fetchAddresses();
   };
 
@@ -125,7 +115,8 @@ export default function AddressScreen() {
       <HeaderWithBack title="Địa chỉ của bạn" />
 
       <TouchableOpacity style={styles.addAddressButton} onPress={handleAddNewAddress}>
-        <Text style={styles.addAddressButtonText}>Thêm Địa Chỉ</Text>
+        <Ionicons name="add-circle-outline" size={22} color="#fff" />
+        <Text style={styles.addAddressButtonText}>Thêm địa chỉ mới</Text>
       </TouchableOpacity>
 
       <FlatList
@@ -133,20 +124,23 @@ export default function AddressScreen() {
         renderItem={({ item }: any) => (
           <View style={styles.addressItem}>
             <View style={styles.addressInfo}>
-              <Text style={styles.namePhoneText}>{item.phone}</Text>
-              <Text style={styles.addressDetailText}>{item.addressDetail}</Text>
+              <View style={styles.row}>
+                <Ionicons name="call-outline" size={16} color="#555" />
+                <Text style={styles.phoneText}>{item.phone}</Text>
+              </View>
+              <View style={styles.row}>
+                <Ionicons name="location-outline" size={16} color="#555" />
+                <Text style={styles.addressText}>{item.addressDetail}</Text>
+              </View>
             </View>
-            <TouchableOpacity
-              style={styles.editButton}
-              onPress={() => handleEditAddress(item.id)}
-            >
-              <Ionicons name="pencil-outline" size={18} color="#666" />
+            <TouchableOpacity style={styles.editButton} onPress={() => handleEditAddress(item.id)}>
+              <Ionicons name="pencil-outline" size={20} color="#FF8000" />
             </TouchableOpacity>
           </View>
         )}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.listContainer}
-        ListEmptyComponent={<Text style={styles.emptyText}>Chưa có địa chỉ</Text>}
+        ListEmptyComponent={<Text style={styles.emptyText}>Chưa có địa chỉ nào</Text>}
       />
 
       <AddAddress
@@ -162,7 +156,7 @@ export default function AddressScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F9F9F9",
+    backgroundColor: "#FAFAFA",
   },
   loadingContainer: {
     flex: 1,
@@ -170,52 +164,64 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   addAddressButton: {
-    backgroundColor: "#FFDAB9",
-    paddingVertical: 15,
+    flexDirection: "row",
+    backgroundColor: "#FF8000",
+    paddingVertical: 14,
+    marginHorizontal: 20,
+    marginTop: 20,
+    borderRadius: 10,
+    justifyContent: "center",
     alignItems: "center",
-    borderRadius: 8,
-    marginHorizontal: 15,
-    marginVertical: 15,
-
+    gap: 8,
   },
   addAddressButtonText: {
     fontSize: 16,
     fontWeight: "600",
-    color: "#333",
+    color: "#fff",
   },
   listContainer: {
     paddingHorizontal: 16,
+    paddingTop: 10,
+    paddingBottom: 30,
   },
   addressItem: {
     flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#FFA500",
+    alignItems: "flex-start",
+    backgroundColor: "#fff",
     padding: 15,
-    borderRadius: 8,
-    marginBottom: 10,
+    borderRadius: 12,
+    marginBottom: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 2,
   },
   addressInfo: {
     flex: 1,
+    gap: 8,
   },
-  namePhoneText: {
-    fontWeight: "bold",
-    fontSize: 16,
-    color: "#fff",
-    marginBottom: 5,
+  row: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
   },
-  addressDetailText: {
+  phoneText: {
+    fontSize: 15,
+    color: "#333",
+  },
+  addressText: {
     fontSize: 14,
-    color: "#fff",
+    color: "#444",
+    flexShrink: 1,
   },
   editButton: {
-    marginLeft: 10,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 6,
+    padding: 6,
   },
   emptyText: {
     textAlign: "center",
-    color: "#666",
-    paddingVertical: 20,
+    color: "#777",
+    fontSize: 15,
+    marginTop: 30,
   },
 });

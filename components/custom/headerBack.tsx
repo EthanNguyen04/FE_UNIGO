@@ -22,7 +22,7 @@ const HeaderWithBack: React.FC<HeaderWithBackProps> = ({ title, onBackPress }) =
   return (
     <View style={styles.container}>
       <TouchableOpacity onPress={handleBack} style={styles.backButton}>
-        <Ionicons name="arrow-back" size={24} color="#000" />
+        <Ionicons name="arrow-back" size={24} color="rgb(72, 61, 139)" />
       </TouchableOpacity>
       <Text style={styles.title}>{title}</Text>
     </View>
@@ -45,11 +45,11 @@ const styles = StyleSheet.create({
   },
   title: {
     flex: 1,
-    fontSize: 20,
+    fontSize: 15,
     fontWeight: 'bold',
     // Để tiêu đề được căn giữa, bạn có thể thêm marginRight để tạo khoảng cách với nút bên phải (nếu có)
     marginRight: 30,
-    color: "#FF8000"
+    color: "rgb(72, 61, 139)"
   },
 });
 
